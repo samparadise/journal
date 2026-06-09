@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Summer Pages</title>
+  <!-- Google Fonts: Fredoka (headings/prompts) + Nunito (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 Free -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     MOBILE SCREEN  (shown only on narrow viewports)
+     ============================================================ -->
+<div id="mobile-screen" class="mobile-screen">
+
+  <div class="mobile-header">
+    <div class="logo-mark"><img src="icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+    <span class="mobile-app-name">Summer Pages</span>
+  </div>
+
+  <div class="mobile-greeting" id="mobile-greeting"></div>
+
+  <div class="mobile-streak-wrap hidden" id="mobile-streak-wrap">
+    <span class="mobile-streak-flame">🔥</span>
+    <span class="mobile-streak-text" id="mobile-streak-text"></span>
+  </div>
+
+  <div class="mobile-cta">
+    <div class="mobile-cta-emoji">💻</div>
+    <p class="mobile-cta-heading">Open Summer Pages on your MacBook to write!</p>
+    <p class="mobile-cta-sub">Writing works best on a big screen — come back here anytime to check your progress.</p>
+  </div>
+
+  <div class="mobile-list-heading">Your prompts</div>
+  <div class="mobile-prompt-list" id="mobile-prompt-list"></div>
+
+</div>
+
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<div id="auth-screen" class="auth-screen hidden">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="logo-mark"><img src="icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+      <div>
+        <div class="auth-app-name">Summer Pages</div>
+        <div class="auth-tagline">Your summer, in your own words</div>
+      </div>
+    </div>
+
+    <div id="phone-step">
+      <div class="auth-heading">Sign in</div>
+      <div class="auth-subheading">Enter your phone number and we'll text you a code.</div>
+      <form id="phone-form" novalidate>
+        <label class="auth-label" for="phone-input">Phone number</label>
+        <input id="phone-input" class="auth-input" type="tel"
+               placeholder="(555) 000-0000" autocomplete="tel" required>
+        <div id="phone-error" class="auth-error" role="alert"></div>
+        <button id="send-otp-btn" class="auth-btn" type="submit">Send code</button>
+      </form>
+    </div>
+
+    <div id="otp-step" class="hidden">
+      <div class="auth-heading">Check your texts</div>
+      <div class="auth-subheading">We sent a 6-digit code to your phone. Enter it below.</div>
+      <form id="otp-form" novalidate>
+        <label class="auth-label" for="otp-input">Verification code</label>
+        <input id="otp-input" class="auth-input" type="text"
+               inputmode="numeric" pattern="[0-9]*"
+               maxlength="6" placeholder="000000"
+               autocomplete="one-time-code" required>
+        <div id="otp-error" class="auth-error" role="alert"></div>
+        <button id="verify-btn" class="auth-btn" type="submit">Verify</button>
+      </form>
+      <div class="auth-back" id="back-to-phone" role="button" tabindex="0">← Use a different number</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     PROFILE SETUP SCREEN
+     ============================================================ -->
+<div id="profile-setup-screen" class="profile-setup-screen hidden">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-mark"><img src="icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+      <div><div class="auth-app-name">Summer Pages</div></div>
+    </div>
+    <div class="auth-heading">What's your name?</div>
+    <div class="auth-subheading">This will show on your journal.</div>
+    <form id="profile-form" novalidate>
+      <label class="auth-label" for="name-input">Your name</label>
+      <input id="name-input" class="auth-input" type="text"
+             placeholder="e.g. Maya" autocomplete="name" required maxlength="40">
+      <div style="height: 20px;"></div>
+      <button id="save-name-btn" class="auth-btn" type="submit">Start writing ✨</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SCREEN
+     ============================================================ -->
+<div id="app-screen" class="app-screen hidden">
+
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-logo">
+        <div class="logo-mark"><img src="icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+        <span class="header-app-name">Summer Pages</span>
+      </div>
+      <div class="header-right">
+        <div class="header-streak hidden" id="header-streak" aria-live="polite">
+          <span class="header-streak-flame">🔥</span>
+          <span id="header-streak-count"></span>
+        </div>
+        <div class="user-avatar" id="user-initial" aria-hidden="true">?</div>
+        <div class="user-menu" id="user-menu">
+          <span class="user-greeting" id="user-menu-trigger"
+                role="button" tabindex="0"
+                aria-haspopup="true" aria-expanded="false">Hi, <span id="user-name"></span>!</span>
+          <div class="user-dropdown hidden" id="user-dropdown" role="menu">
+            <button class="user-dropdown-item" id="sign-out-btn" role="menuitem">
+              <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="prompt-banner" role="region" aria-label="Today's writing prompt">
+      <span class="prompt-day-badge" id="prompt-day">Day 1</span>
+      <div class="prompt-icon-tile hidden" id="prompt-icon-tile" aria-hidden="true">
+        <img id="prompt-icon-img" src="" alt="">
+      </div>
+      <div class="prompt-banner-text">
+        <div class="prompt-text" id="prompt-text">Loading today's prompt…</div>
+        <div class="prompt-subtext" id="prompt-subtext"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-area">
+
+    <div class="entry-meta">
+      <span class="entry-date-label" id="entry-date"></span>
+    </div>
+
+    <textarea id="canvas" class="writing-canvas" rows="8"
+              placeholder="Start writing here…"
+              aria-label="Write your journal entry"></textarea>
+
+    <div class="canvas-bottom">
+
+      <div class="canvas-bottom-row">
+        <div class="word-count" id="word-count" aria-live="polite">0 words</div>
+        <div class="mood-row" role="group" aria-label="How are you feeling?">
+          <span class="mood-label">Mood:</span>
+          <button class="mood-btn" data-mood="happy">😊 happy</button>
+          <button class="mood-btn" data-mood="excited">🎉 excited</button>
+          <button class="mood-btn" data-mood="calm">😌 calm</button>
+          <button class="mood-btn" data-mood="thoughtful">🤔 thoughtful</button>
+          <button class="mood-btn" data-mood="silly">😜 silly</button>
+          <button class="mood-btn" data-mood="proud">💪 proud</button>
+        </div>
+      </div>
+
+      <div class="photo-strip" id="photo-strip">
+        <button class="photo-add-btn" id="photo-add-btn" type="button" aria-label="Add a photo">
+          <i class="fa-solid fa-camera" aria-hidden="true"></i>
+          <span>photo</span>
+        </button>
+        <input type="file" id="photo-file-input" class="hidden"
+               accept="image/*" multiple aria-hidden="true">
+      </div>
+
+      <div class="canvas-footer">
+        <button class="post-btn" id="post-btn" type="button">
+          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+          Post entry
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="sidebar" aria-label="Past entries">
+
+    <div class="sidebar-header">
+      <span class="sidebar-title">Past entries</span>
+      <span class="entry-count-badge" id="entry-count">0 entries</span>
+    </div>
+
+    <div class="entries-list" id="entries-list" role="list"></div>
+
+    <div class="sidebar-progress" aria-label="Weekly writing goal">
+      <div class="progress-header">
+        <span>This week</span>
+        <span id="week-goal">0 of 3</span>
+      </div>
+      <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+      </div>
+      <div class="week-dots" id="week-dots" aria-hidden="true"></div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- ============================================================
+     ENTRY MODAL
+     ============================================================ -->
+<div id="entry-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-prompt-text" id="modal-prompt"></div>
+      <button class="modal-close-btn" id="modal-close" aria-label="Close entry">✕</button>
+    </div>
+    <div class="modal-meta">
+      <span class="modal-date-text" id="modal-date"></span>
+      <span class="modal-mood-badge" id="modal-mood"></span>
+    </div>
+    <div class="modal-body-text" id="modal-body"></div>
+    <div class="modal-photos" id="modal-photos"></div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="j2auth.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
