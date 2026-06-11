@@ -1,12 +1,13 @@
 'use strict'
 
-const STUB = window.APP_CONFIG.stubMode
+const STUB_AUTH = window.APP_CONFIG.stubAuth   // skip j2auth, fake user
+const STUB_DATA = window.APP_CONFIG.stubData   // localStorage instead of Supabase
 
 // ============================================================
-// SUPABASE CLIENT  (only used when not in stub mode)
+// SUPABASE CLIENT  (only used when data is not stubbed)
 // ============================================================
 
-const supa = !STUB
+const supa = !STUB_DATA
   ? window.supabase.createClient(window.APP_CONFIG.supabaseUrl, window.APP_CONFIG.supabaseKey)
   : null
 
@@ -24,6 +25,7 @@ const state = {
   selectedMood:   null,
   currentEntryId: null,
   saving:         false,
+  pendingProfile: null,   // { name, birthday } held for new users until verified
 }
 
 // ============================================================
@@ -86,8 +88,7 @@ const hide = el => el.classList.add('hidden')
 // STUB STORAGE  (localStorage-backed, no backend needed)
 // ============================================================
 
-const STUB_USER    = '+15550000000'
-const STUB_PROFILE = { id: STUB_USER, name: 'Maya', avatar_color: '#E85B8C' }
+const STUB_USER        = '+15550000000'  // only used when stubAuth is on
 const STUB_ENTRIES_KEY = 'sp_stub_entries'
 
 function stubLoadEntries() {
@@ -114,7 +115,7 @@ function stubPostEntry(promptDate, body, mood) {
 
   const entry = {
     id:           Date.now(),
-    user_id:      STUB_USER,
+    user_id:      state.user,
     prompt_date:  promptDate,
     body,
     mood,
@@ -141,11 +142,39 @@ async function sendCode(rawPhone) {
 async function verifyCode(userCode) {
   const ok = await verifyAuthenticationCode(userCode)
   if (!ok) throw new Error('Wrong code — try again.')
+  // Associate this user with the journal Business in the graph.
+  // Server auto-creates a User object for new mobiles.
+  registerBusinessUser()
   return userMobile
 }
 
+// Check whether a mobile already belongs to a known user, and get any
+// profile vars stored for this biz. Uses serverURL from j2auth.js
+// (already localized via local.json by the time forms are usable).
+async function checkUser(rawPhone) {
+  const res = await fetch(serverURL + '/usercheck/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile: rawPhone, bizid: window.APP_CONFIG.j2BizId })
+  })
+  if (!res.ok) throw new Error('Could not check that number — try again.')
+  return res.json()  // { exists, profile }
+}
+
+// Store profile vars (name, birthday) on the User for this biz.
+// Must run after auth — the User object is created by /auth/.
+async function pushProfile(mobile, vars) {
+  const res = await fetch(serverURL + '/update-profile/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile, bizid: window.APP_CONFIG.j2BizId, vars })
+  })
+  if (!res.ok) throw new Error('Could not save profile')
+  return res.json()  // { profile }
+}
+
 function signOut() {
-  if (!STUB) {
+  if (!STUB_AUTH) {
     document.cookie = `jupiterDeviceID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
     isAuthenticated = false
   }
@@ -387,7 +416,7 @@ function renderMoodButtons() {
 
 function renderExistingPhotos(photos) {
   document.querySelectorAll('.photo-existing').forEach(el => el.remove())
-  if (STUB) return  // no photo URLs in stub mode
+  if (STUB_DATA) return  // no photo URLs in stub mode
   const strip = $('photo-strip'), addBtn = $('photo-add-btn')
   photos.forEach(p => {
     const div = document.createElement('div')
@@ -479,7 +508,7 @@ function updateWordCount() {
 // ============================================================
 
 function renderMobile() {
-  const entries    = STUB ? stubLoadEntries() : state.entries
+  const entries    = STUB_DATA ? stubLoadEntries() : state.entries
   const entryDates = new Set(entries.map(e => e.prompt_date))
   const today      = new Date().toISOString().split('T')[0]
 
@@ -548,17 +577,75 @@ function showAuthScreen() {
 // EVENT HANDLERS — Auth
 // ============================================================
 
+// Auto-format phone number as (###) ###-#### while typing
+function formatPhone(digits) {
+  if (!digits.length) return ''
+  if (digits.length <= 3) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+}
+
+$('phone-input').addEventListener('input', e => {
+  const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
+  e.target.value = formatPhone(digits)
+  // Number changed — any new-user expansion no longer applies
+  hide($('newuser-fields'))
+  state.pendingProfile = null
+  $('send-otp-btn').textContent = 'Send code'
+})
+
 $('phone-form').addEventListener('submit', async e => {
   e.preventDefault()
-  const phone = $('phone-input').value.trim()
-  if (!phone) return
+  const phone  = $('phone-input').value.trim()
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length < 10) {
+    $('phone-error').textContent = 'Please enter a full 10-digit phone number.'
+    return
+  }
+
   const btn = $('send-otp-btn')
-  btn.disabled = true; btn.textContent = 'Sending…'
   $('phone-error').textContent = ''
+
+  // Phase 2: new-user fields are open — validate, stash, send code
+  if (!$('newuser-fields').classList.contains('hidden')) {
+    const name     = $('newuser-name').value.trim()
+    const birthday = $('newuser-birthday').value  // YYYY-MM-DD or ''
+    if (!name) {
+      $('phone-error').textContent = 'Tell us your name so we know what to call you!'
+      $('newuser-name').focus()
+      return
+    }
+    state.pendingProfile = { name, ...(birthday ? { birthday } : {}) }
+
+    btn.disabled = true; btn.textContent = 'Sending…'
+    try {
+      await sendCode(phone)
+      hide($('phone-step')); show($('otp-step'))
+      $('otp-input').focus()
+    } catch (err) {
+      $('phone-error').textContent = err.message
+      btn.disabled = false; btn.textContent = 'Send my code'
+    }
+    return
+  }
+
+  // Phase 1: check whether this mobile is already a known user
+  btn.disabled = true; btn.textContent = 'Checking…'
   try {
-    await sendCode(phone)
-    hide($('phone-step')); show($('otp-step'))
-    $('otp-input').focus()
+    const { exists, profile } = await checkUser(phone)
+
+    if (exists && profile?.name) {
+      // Known user — straight to the code
+      btn.textContent = 'Sending…'
+      await sendCode(phone)
+      hide($('phone-step')); show($('otp-step'))
+      $('otp-input').focus()
+    } else {
+      // New user (or no profile yet) — expand the intro form
+      show($('newuser-fields'))
+      btn.disabled = false; btn.textContent = 'Send my code'
+      $('newuser-name').focus()
+    }
   } catch (err) {
     $('phone-error').textContent = err.message
     btn.disabled = false; btn.textContent = 'Send code'
@@ -574,6 +661,20 @@ $('otp-form').addEventListener('submit', async e => {
   $('otp-error').textContent = ''
   try {
     state.user = await verifyCode(token)
+
+    // New user: store their profile info now that the User object
+    // exists (created server-side during /auth/)
+    if (state.pendingProfile) {
+      try {
+        await pushProfile(state.user, state.pendingProfile)
+        localStorage.setItem('sp_user_name', state.pendingProfile.name)
+      } catch (err) {
+        // Non-fatal — they're authenticated; profile can be set later
+        console.error('Profile save failed:', err)
+      }
+      state.pendingProfile = null
+    }
+
     await handleAuthenticated()
   } catch (err) {
     $('otp-error').textContent = err.message
@@ -597,8 +698,8 @@ $('profile-form').addEventListener('submit', async e => {
   const btn = $('save-name-btn')
   btn.disabled = true; btn.textContent = 'Saving…'
   try {
-    if (STUB) {
-      state.profile = { ...STUB_PROFILE, name }
+    if (STUB_DATA) {
+      state.profile = { id: state.user, name }
     } else {
       state.profile = await saveProfileName(state.user, name)
     }
@@ -660,7 +761,7 @@ $('post-btn').addEventListener('click', async () => {
 
   try {
     let entry
-    if (STUB) {
+    if (STUB_DATA) {
       entry = stubPostEntry(state.todayPrompt.date, body, state.selectedMood)
     } else {
       entry = await postEntry(state.user, state.todayPrompt.date, body, state.selectedMood)
@@ -671,7 +772,7 @@ $('post-btn').addEventListener('click', async () => {
       }
     }
     clearDraft(state.todayPrompt.date)
-    state.entries = STUB ? stubLoadEntries() : await loadEntries(state.user)
+    state.entries = STUB_DATA ? stubLoadEntries() : await loadEntries(state.user)
     renderApp()
     btn.innerHTML = '✓ Posted!'
     setTimeout(() => {
@@ -753,7 +854,7 @@ function openModal(entry) {
   const grid   = $('modal-photos')
   grid.innerHTML = ''
   grid.style.display = photos.length ? 'grid' : 'none'
-  if (!STUB) {
+  if (!STUB_DATA) {
     photos.forEach(p => {
       const img = document.createElement('img')
       img.src = photoUrl(p.storage_path); img.alt = 'Journal photo'
@@ -776,16 +877,22 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hide($('entr
 async function loadAndRenderApp() {
   state.prompts     = await loadPrompts()
   state.todayPrompt = getActivePrompt(state.prompts)
-  state.entries     = STUB ? stubLoadEntries() : await loadEntries(state.user)
+  state.entries     = STUB_DATA ? stubLoadEntries() : await loadEntries(state.user)
   renderApp()
 }
 
 async function handleAuthenticated() {
   hide($('auth-screen'))
   try {
-    if (STUB) {
-      state.profile = STUB_PROFILE
-      localStorage.setItem('sp_user_name', STUB_PROFILE.name)
+    if (STUB_DATA) {
+      // Profile lives on the REGISTERED_FOR relationship in the graph
+      // (biz_profile in the /userprofile/ response), localStorage fallback
+      const vars = (!STUB_AUTH && typeof userProfile !== 'undefined' && userProfile?.biz_profile) || {}
+      state.profile = {
+        id:       state.user,
+        name:     vars.name || localStorage.getItem('sp_user_name') || '',
+        birthday: vars.birthday || null,
+      }
     } else {
       state.profile = await loadProfile(state.user)
       if (!state.profile) state.profile = await createProfile(state.user)
@@ -810,20 +917,27 @@ async function init() {
   state.prompts = await loadPrompts()
   renderMobile()
 
-  if (STUB) {
+  if (STUB_AUTH) {
     // Skip auth entirely — go straight to the app
     state.user = STUB_USER
     await handleAuthenticated()
     return
   }
 
+  // j2AuthInit reads local.json (API server override), checks the
+  // device cookie, and fetches the user profile if it's valid
   await j2AuthInit(window.APP_CONFIG.j2BizId, window.APP_CONFIG.j2AppToken)
-  if (isAuthenticated && userMobile) {
-    state.user = userMobile
-    await handleAuthenticated()
-  } else {
-    showAuthScreen()
+  if (isAuthenticated) {
+    // On cookie-restored sessions j2auth doesn't set the userMobile
+    // global — recover it from the profile (shape: { user: { mobile, uuid }, ... })
+    state.user = userMobile || userProfile?.user?.mobile || null
+    if (state.user) {
+      await handleAuthenticated()
+      return
+    }
+    console.error('Authenticated but no mobile in profile:', userProfile)
   }
+  showAuthScreen()
 }
 
 init()

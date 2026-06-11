@@ -63,6 +63,18 @@
         <label class="auth-label" for="phone-input">Phone number</label>
         <input id="phone-input" class="auth-input" type="tel"
                placeholder="(555) 000-0000" autocomplete="tel" required>
+
+        <!-- New-user expansion: shown when the mobile isn't a known user -->
+        <div id="newuser-fields" class="newuser-fields hidden">
+          <div class="newuser-greeting">Good to meet you! 👋</div>
+          <div class="newuser-sub">Tell us a little about yourself.</div>
+          <label class="auth-label" for="newuser-name">What should I call you?</label>
+          <input id="newuser-name" class="auth-input" type="text"
+                 placeholder="e.g. Maya" autocomplete="given-name" maxlength="40">
+          <label class="auth-label" for="newuser-birthday">Your birthday</label>
+          <input id="newuser-birthday" class="auth-input" type="date">
+        </div>
+
         <div id="phone-error" class="auth-error" role="alert"></div>
         <button id="send-otp-btn" class="auth-btn" type="submit">Send code</button>
       </form>
@@ -70,12 +82,12 @@
 
     <div id="otp-step" class="hidden">
       <div class="auth-heading">Check your texts</div>
-      <div class="auth-subheading">We sent a 6-digit code to your phone. Enter it below.</div>
+      <div class="auth-subheading">We sent a code to your phone from a (512) number. Enter it below.</div>
       <form id="otp-form" novalidate>
         <label class="auth-label" for="otp-input">Verification code</label>
         <input id="otp-input" class="auth-input" type="text"
                inputmode="numeric" pattern="[0-9]*"
-               maxlength="6" placeholder="000000"
+               maxlength="6" placeholder="0000"
                autocomplete="one-time-code" required>
         <div id="otp-error" class="auth-error" role="alert"></div>
         <button id="verify-btn" class="auth-btn" type="submit">Verify</button>

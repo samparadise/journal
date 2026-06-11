@@ -1,20 +1,23 @@
 // ============================================================
 // Summer Pages — Configuration
 // ============================================================
-// Set stubMode: true to run entirely in the browser with no
-// backend. Auth is bypassed, entries are stored in localStorage.
-// Flip to false and fill in the values below when you're ready
-// to wire up the real backend.
+// stubAuth: true  → skip j2auth entirely, sign in as a fake user
+// stubData: true  → entries/profile stored in localStorage
+//                   (no Supabase). Flip to false + fill in keys
+//                   when the backend is ready.
 //
-// Supabase:  Dashboard → Project Settings → API
-// j2auth:    your Business ID and app token from the Jupiter 2 graph
+// j2auth API server URL comes from local.json when present
+// (see j2auth.js checkLocalConfig), otherwise the production
+// server baked into j2auth.js.
 // ============================================================
 
 window.APP_CONFIG = {
-  stubMode:     true,
+  stubAuth:     false,
+  stubData:     true,
+
+  j2BizId:      'journal',
+  j2AppToken:   'summer-pages',
 
   supabaseUrl:  'https://YOUR_PROJECT_ID.supabase.co',
-  supabaseKey:  'YOUR_ANON_PUBLIC_KEY',
-  j2BizId:      'YOUR_BIZ_ID',
-  j2AppToken:   'YOUR_APP_TOKEN'
+  supabaseKey:  'YOUR_ANON_PUBLIC_KEY'
 }
