@@ -1007,10 +1007,10 @@ html, body {
    ============================================================ */
 
 @media (max-width: 767px) {
-  .app-screen,
-  .auth-screen,
-  .profile-setup-screen { display: none !important; }
-  .mobile-screen { display: flex; }
+  /* The full writing app never shows on mobile; auth screens do.
+     The mobile to-do screen is toggled via .hidden like the rest. */
+  .app-screen { display: none !important; }
+  .mobile-screen:not(.hidden) { display: flex; }
 }
 
 @media (min-width: 768px) and (max-width: 1050px) {

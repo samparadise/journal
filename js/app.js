@@ -512,9 +512,8 @@ function renderMobile() {
   const entryDates = new Set(entries.map(e => e.prompt_date))
   const today      = new Date().toISOString().split('T')[0]
 
-  // Personalized greeting — reads name from localStorage so it
-  // works on mobile even before the full app init runs
-  const name = localStorage.getItem('sp_user_name') || (state.profile?.name ?? '')
+  // Personalized greeting — profile is loaded by the time this renders
+  const name = state.profile?.name || localStorage.getItem('sp_user_name') || ''
   $('mobile-greeting').textContent = getGreeting(name)
 
   // Streak on mobile
@@ -567,10 +566,20 @@ function renderMobile() {
 
 function showAuthScreen() {
   hide($('app-screen'))
+  hide($('mobile-screen'))
   hide($('profile-setup-screen'))
   show($('auth-screen'))
   show($('phone-step'))
   hide($('otp-step'))
+}
+
+// Show the signed-in experience. Both screens are un-hidden;
+// CSS media queries decide which one renders (full app on
+// desktop, to-do list on mobile).
+function showMainScreen() {
+  renderMobile()
+  show($('app-screen'))
+  show($('mobile-screen'))
 }
 
 // ============================================================
@@ -706,7 +715,7 @@ $('profile-form').addEventListener('submit', async e => {
     localStorage.setItem('sp_user_name', name)
     hide($('profile-setup-screen'))
     await loadAndRenderApp()
-    show($('app-screen'))
+    showMainScreen()
   } catch (err) {
     console.error(err)
     btn.disabled = false; btn.textContent = 'Start writing ✨'
@@ -905,7 +914,7 @@ async function handleAuthenticated() {
     }
 
     await loadAndRenderApp()
-    show($('app-screen'))
+    showMainScreen()
   } catch (err) {
     console.error('App init error:', err)
     showAuthScreen()
@@ -913,10 +922,6 @@ async function handleAuthenticated() {
 }
 
 async function init() {
-  // Always load prompts for the mobile screen
-  state.prompts = await loadPrompts()
-  renderMobile()
-
   if (STUB_AUTH) {
     // Skip auth entirely — go straight to the app
     state.user = STUB_USER
