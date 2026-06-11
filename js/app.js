@@ -930,8 +930,15 @@ async function init() {
   }
 
   // j2AuthInit reads local.json (API server override), checks the
-  // device cookie, and fetches the user profile if it's valid
-  await j2AuthInit(window.APP_CONFIG.j2BizId, window.APP_CONFIG.j2AppToken)
+  // device cookie, and fetches the user profile if it's valid.
+  // Never let an API failure leave the page blank — fall through
+  // to the auth screen on any error.
+  try {
+    await j2AuthInit(window.APP_CONFIG.j2BizId, window.APP_CONFIG.j2AppToken)
+  } catch (err) {
+    console.error('j2AuthInit failed:', err)
+  }
+
   if (isAuthenticated) {
     // On cookie-restored sessions j2auth doesn't set the userMobile
     // global — recover it from the profile (shape: { user: { mobile, uuid }, ... })
@@ -945,4 +952,7 @@ async function init() {
   showAuthScreen()
 }
 
-init()
+init().catch(err => {
+  console.error('Init failed:', err)
+  showAuthScreen()
+})
