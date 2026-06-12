@@ -800,7 +800,14 @@ html, body {
   background: var(--purple-100);
 }
 
-.canvas-footer { display: flex; align-items: center; justify-content: flex-end; }
+.canvas-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+.post-explainer {
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  max-width: 460px;
+}
 
 .post-btn {
   padding: 12px 28px;
@@ -1089,6 +1096,37 @@ html, body {
   border: 1.5px solid var(--border);
   display: block;
 }
+
+/* ============================================================
+   PHOTO LIGHTBOX
+   ============================================================ */
+
+.lightbox-img {
+  max-width: 92vw;
+  max-height: 88vh;
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.5);
+  display: block;
+}
+
+.photo-thumb { cursor: pointer; }
+
+.photo-thumb.uploading {
+  opacity: 0.55;
+}
+.photo-thumb.uploading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.6);
+  border-top-color: var(--purple-500);
+  border-radius: 50%;
+  animation: photo-spin 0.8s linear infinite;
+}
+@keyframes photo-spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
    DONE CONFIRM MODAL

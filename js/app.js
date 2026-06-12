@@ -35,7 +35,7 @@ const state = {
   prompts:        [],     // loaded from prompts.json
   todayPrompt:    null,
   entries:        [],
-  stagedPhotos:   [],     // { file: File, previewUrl: string }
+  uploadingCount: 0,      // photos currently uploading
   selectedMood:   null,
   currentEntryId: null,
   saving:         false,
@@ -145,6 +145,107 @@ function stubPostEntry(promptId, entryMd, mood, final = false) {
   return entry
 }
 
+function stubPhotoEntry(promptId) {
+  // find-or-create the entry a photo attaches to (stub mode)
+  const entries = stubLoadEntries()
+  let entry = entries.find(e => e.prompt_id === promptId)
+  if (entry?.final) throw new Error('Entry is final and cannot be edited')
+  if (!entry) {
+    entry = {
+      id: Date.now(), prompt_id: promptId, entry_md: '', mood: null,
+      final: false, created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(), photo_urls: [],
+    }
+    entries.unshift(entry)
+  }
+  return { entries, entry }
+}
+
+function stubAddPhoto(promptId, dataUrl) {
+  const { entries, entry } = stubPhotoEntry(promptId)
+  entry.photo_urls.push(dataUrl)
+  entry.updated_at = new Date().toISOString()
+  stubSaveEntries(entries)
+  return entry.photo_urls
+}
+
+function stubRemovePhoto(promptId, url) {
+  const { entries, entry } = stubPhotoEntry(promptId)
+  entry.photo_urls = entry.photo_urls.filter(u => u !== url)
+  entry.updated_at = new Date().toISOString()
+  stubSaveEntries(entries)
+  return entry.photo_urls
+}
+
+// ============================================================
+// PHOTOS  (resize client-side, upload immediately on add)
+// ============================================================
+
+const PHOTO_MAX_DIM  = 1600
+const PHOTO_QUALITY  = 0.85
+
+// Downscale to a reasonable JPEG before upload — phone photos
+// are 8-12MB and would crawl as base64 JSON otherwise.
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(objUrl)
+      const scale  = Math.min(1, PHOTO_MAX_DIM / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', PHOTO_QUALITY))
+    }
+    img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('Could not read that image')) }
+    img.src = objUrl
+  })
+}
+
+async function addPhotoFiles(files) {
+  if (!state.canEdit || !state.todayPrompt) return
+  const images = Array.from(files).filter(f => f.type.startsWith('image/'))
+  if (!images.length) return
+
+  state.uploadingCount += images.length
+  renderPhotoStrip()
+
+  for (const file of images) {
+    try {
+      const dataUrl = await resizeImage(file)
+      const urls = STUB_DATA
+        ? stubAddPhoto(state.todayPrompt.id, dataUrl)
+        : await apiAddPhoto(state.todayPrompt.id, dataUrl)
+      applyPhotoUrls(urls)
+    } catch (err) {
+      console.error('Photo upload failed:', err)
+      setSaveStatus('Photo upload failed', 'error')
+    } finally {
+      state.uploadingCount--
+    }
+    renderPhotoStrip()
+  }
+}
+
+// Sync the active entry's photo_urls into local state
+function applyPhotoUrls(urls) {
+  if (!state.todayPrompt) return
+  let entry = state.entries.find(e => e.prompt_id === state.todayPrompt.id)
+  if (!entry) {
+    entry = {
+      id: Date.now(), prompt_id: state.todayPrompt.id, entry_md: '',
+      mood: state.selectedMood, final: false,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      photo_urls: [],
+    }
+    state.entries.unshift(entry)
+  }
+  entry.photo_urls = urls
+  renderSidebar()
+}
+
 // ============================================================
 // AUTH — j2auth wrappers  (real mode only)
 // ============================================================
@@ -216,6 +317,37 @@ async function apiLoadEntries() {
   if (!res.ok) throw new Error('Could not load your entries')
   const data = await res.json()
   return data.entries || []
+}
+
+async function apiAddPhoto(promptId, dataUrl) {
+  const res = await fetch(serverURL + '/journal/photo/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      usertoken: userToken,
+      bizid:     window.APP_CONFIG.j2BizId,
+      prompt_id: promptId,
+      image:     dataUrl
+    })
+  })
+  if (res.status === 409) throw new Error('This entry is already done — it can\'t be changed.')
+  if (!res.ok) throw new Error('Could not upload the photo')
+  return (await res.json()).photo_urls
+}
+
+async function apiRemovePhoto(promptId, url) {
+  const res = await fetch(serverURL + '/journal/photo/remove/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      usertoken: userToken,
+      bizid:     window.APP_CONFIG.j2BizId,
+      prompt_id: promptId,
+      url
+    })
+  })
+  if (!res.ok) throw new Error('Could not remove the photo')
+  return (await res.json()).photo_urls
 }
 
 async function apiPostEntry(promptId, entryMd, mood, final = false) {
@@ -429,7 +561,6 @@ function renderApp() {
   setCanvasMd(existingEntry?.entry_md || '')
   state.selectedMood   = existingEntry?.mood || null
   state.currentEntryId = existingEntry?.id || null
-  renderExistingPhotos(existingEntry?.photo_urls || [])
 
   // Editability: only today's prompt, and only until it's finalized.
   // No going back or forward in time — that's the whole point.
@@ -464,12 +595,13 @@ function renderApp() {
   document.querySelector('.editor-toolbar').style.display = state.canEdit ? '' : 'none'
   document.querySelectorAll('.mood-btn').forEach(b => b.disabled = !state.canEdit)
   $('photo-add-btn').disabled = !state.canEdit
-  $('done-btn').style.display = state.canEdit ? '' : 'none'
+  $('done-btn').style.display       = state.canEdit ? '' : 'none'
+  $('post-explainer').style.display = state.canEdit ? '' : 'none'
   setSaveStatus('')
 
   updateWordCount()
   renderMoodButtons()
-  renderStagedPhotos()
+  renderPhotoStrip()
   renderSidebar()
   renderWeekProgress()
 }
@@ -480,28 +612,29 @@ function renderMoodButtons() {
   })
 }
 
-function renderExistingPhotos(photoUrls) {
-  document.querySelectorAll('.photo-existing').forEach(el => el.remove())
-  const strip = $('photo-strip'), addBtn = $('photo-add-btn')
-  photoUrls.forEach(url => {
-    const div = document.createElement('div')
-    div.className = 'photo-thumb photo-existing'
-    div.innerHTML = `<img src="${url}" alt="Entry photo">`
-    strip.insertBefore(div, addBtn)
-  })
-}
+function renderPhotoStrip() {
+  document.querySelectorAll('.photo-thumb').forEach(el => el.remove())
+  const strip  = $('photo-strip'), addBtn = $('photo-add-btn')
+  const entry  = state.todayPrompt
+    ? state.entries.find(e => e.prompt_id === state.todayPrompt.id)
+    : null
 
-function renderStagedPhotos() {
-  document.querySelectorAll('.photo-staged').forEach(el => el.remove())
-  const strip = $('photo-strip'), addBtn = $('photo-add-btn')
-  state.stagedPhotos.forEach((p, i) => {
+  ;(entry?.photo_urls || []).forEach(url => {
     const div = document.createElement('div')
-    div.className = 'photo-thumb photo-staged'
+    div.className = 'photo-thumb'
+    div.dataset.url = url
     div.innerHTML = `
-      <img src="${p.previewUrl}" alt="Photo to upload">
-      <button class="photo-remove-btn" data-index="${i}" aria-label="Remove photo">✕</button>`
+      <img src="${url}" alt="Entry photo">
+      ${state.canEdit ? '<button class="photo-remove-btn" aria-label="Remove photo">✕</button>' : ''}`
     strip.insertBefore(div, addBtn)
   })
+
+  // Spinner placeholders for in-flight uploads
+  for (let i = 0; i < state.uploadingCount; i++) {
+    const div = document.createElement('div')
+    div.className = 'photo-thumb uploading'
+    strip.insertBefore(div, addBtn)
+  }
 }
 
 function renderSidebar() {
@@ -847,21 +980,59 @@ $('canvas').addEventListener('keydown', e => {
 $('photo-add-btn').addEventListener('click', () => $('photo-file-input').click())
 
 $('photo-file-input').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(file => {
-    if (!file.type.startsWith('image/')) return
-    state.stagedPhotos.push({ file, previewUrl: URL.createObjectURL(file) })
-  })
-  renderStagedPhotos()
+  addPhotoFiles(e.target.files)
   e.target.value = ''
 })
 
-$('photo-strip').addEventListener('click', e => {
-  const btn = e.target.closest('.photo-remove-btn')
-  if (!btn) return
-  const i = parseInt(btn.dataset.index, 10)
-  URL.revokeObjectURL(state.stagedPhotos[i].previewUrl)
-  state.stagedPhotos.splice(i, 1)
-  renderStagedPhotos()
+// Photo strip: ✕ removes (while editable), clicking a thumb previews
+$('photo-strip').addEventListener('click', async e => {
+  const thumb = e.target.closest('.photo-thumb')
+  if (!thumb || thumb.classList.contains('uploading')) return
+
+  const url = thumb.dataset.url
+  if (e.target.closest('.photo-remove-btn')) {
+    if (!state.canEdit || !state.todayPrompt) return
+    try {
+      const urls = STUB_DATA
+        ? stubRemovePhoto(state.todayPrompt.id, url)
+        : await apiRemovePhoto(state.todayPrompt.id, url)
+      applyPhotoUrls(urls)
+      renderPhotoStrip()
+    } catch (err) {
+      console.error('Photo remove failed:', err)
+      setSaveStatus('Could not remove photo', 'error')
+    }
+    return
+  }
+
+  // Lightbox preview
+  $('lightbox-img').src = url
+  show($('photo-lightbox'))
+})
+
+$('photo-lightbox').addEventListener('click', () => {
+  hide($('photo-lightbox'))
+  $('lightbox-img').src = ''
+})
+
+// Drag & drop photos onto the writing area
+const mainArea = document.querySelector('.main-area')
+;['dragover', 'dragenter'].forEach(ev =>
+  mainArea.addEventListener(ev, e => { e.preventDefault() }))
+mainArea.addEventListener('drop', e => {
+  e.preventDefault()
+  if (e.dataTransfer?.files?.length) addPhotoFiles(e.dataTransfer.files)
+})
+
+// Paste an image (e.g. a screenshot) straight into the canvas
+$('canvas').addEventListener('paste', e => {
+  const files = Array.from(e.clipboardData?.items || [])
+    .filter(it => it.kind === 'file' && it.type.startsWith('image/'))
+    .map(it => it.getAsFile())
+  if (files.length) {
+    e.preventDefault()
+    addPhotoFiles(files)
+  }
 })
 
 // --- Done! flow: confirm modal → finalize → lock ---
@@ -888,7 +1059,7 @@ $('confirm-done').addEventListener('click', async () => {
 
   state.saving = true
   const btn    = $('done-btn')
-  btn.disabled = true; btn.textContent = 'Finishing…'
+  btn.disabled = true; btn.textContent = 'Posting…'
   setSaveStatus('Saving…')
 
   try {
@@ -897,9 +1068,6 @@ $('confirm-done').addEventListener('click', async () => {
       stubPostEntry(state.todayPrompt.id, entryMd, state.selectedMood, true)
     } else {
       await apiPostEntry(state.todayPrompt.id, entryMd, state.selectedMood, true)
-      if (state.stagedPhotos.length > 0) {
-        console.warn('Photo upload not wired up yet (S3) — skipping', state.stagedPhotos.length, 'photos')
-      }
     }
     state.entries = STUB_DATA ? stubLoadEntries() : await apiLoadEntries()
     renderApp()  // locks the editor, shows the done note
@@ -909,7 +1077,7 @@ $('confirm-done').addEventListener('click', async () => {
   } finally {
     state.saving = false
     btn.disabled = false
-    btn.innerHTML = '<i class="fa-solid fa-flag-checkered" aria-hidden="true"></i> Done!'
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Post entry'
   }
 })
 
@@ -986,7 +1154,21 @@ function openModal(entry) {
 
 $('modal-close').addEventListener('click', () => hide($('entry-modal')))
 $('entry-modal').addEventListener('click', e => { if (e.target === $('entry-modal')) hide($('entry-modal')) })
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hide($('entry-modal')) })
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    hide($('entry-modal'))
+    hide($('photo-lightbox'))
+    hide($('confirm-modal'))
+  }
+})
+
+// Photos inside the past-entry modal open the lightbox too
+$('modal-photos').addEventListener('click', e => {
+  const img = e.target.closest('img')
+  if (!img) return
+  $('lightbox-img').src = img.src
+  show($('photo-lightbox'))
+})
 
 // ============================================================
 // INIT
