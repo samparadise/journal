@@ -14,9 +14,10 @@
   },
   {
     "date": "2026-06-13",
-    "id": "20260613-someone",
-    "body": "Write about someone who inspired you recently — could be anyone.",
-    "subtext": "It doesn't have to be a big dramatic moment."
+    "id": "20260613-super",
+    "body": "If you woke up with a super power tomorrow, what would it be?",
+    "subtext": "What would you do with it? How would the day go?",
+    "icon": "super"
   },
   {
     "date": "2026-06-16",
