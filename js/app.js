@@ -1,15 +1,29 @@
 'use strict'
 
 const STUB_AUTH = window.APP_CONFIG.stubAuth   // skip j2auth, fake user
-const STUB_DATA = window.APP_CONFIG.stubData   // localStorage instead of Supabase
+const STUB_DATA = window.APP_CONFIG.stubData   // localStorage instead of the graph API
 
 // ============================================================
-// SUPABASE CLIENT  (only used when data is not stubbed)
+// MARKDOWN  (marked: md→html, turndown: html→md, DOMPurify: sanitize)
+// Entries are stored as markdown (entry_md); the editor is a
+// contenteditable div working in HTML.
 // ============================================================
 
-const supa = !STUB_DATA
-  ? window.supabase.createClient(window.APP_CONFIG.supabaseUrl, window.APP_CONFIG.supabaseKey)
-  : null
+const turndown = new TurndownService({ emDelimiter: '*', headingStyle: 'atx' })
+
+function mdToHtml(md) {
+  return DOMPurify.sanitize(marked.parse(md || ''))
+}
+
+function htmlToMd(html) {
+  return turndown.turndown(html || '').trim()
+}
+
+function mdToText(md) {
+  const d = document.createElement('div')
+  d.innerHTML = mdToHtml(md)
+  return (d.textContent || '').trim()
+}
 
 // ============================================================
 // STATE
@@ -25,6 +39,7 @@ const state = {
   selectedMood:   null,
   currentEntryId: null,
   saving:         false,
+  canEdit:        false,  // today's prompt, not yet finalized
   pendingProfile: null,   // { name, birthday } held for new users until verified
 }
 
@@ -101,27 +116,29 @@ function stubSaveEntries(entries) {
   try { localStorage.setItem(STUB_ENTRIES_KEY, JSON.stringify(entries)) } catch (_) {}
 }
 
-function stubPostEntry(promptDate, body, mood) {
+function stubPostEntry(promptId, entryMd, mood, final = false) {
   const entries  = stubLoadEntries()
-  const existing = entries.find(e => e.prompt_date === promptDate)
+  const existing = entries.find(e => e.prompt_id === promptId)
 
   if (existing) {
-    existing.body       = body
+    if (existing.final) throw new Error('Entry is final and cannot be edited')
+    existing.entry_md   = entryMd
     existing.mood       = mood
+    existing.final      = final
     existing.updated_at = new Date().toISOString()
     stubSaveEntries(entries)
     return existing
   }
 
   const entry = {
-    id:           Date.now(),
-    user_id:      state.user,
-    prompt_date:  promptDate,
-    body,
+    id:         Date.now(),
+    prompt_id:  promptId,
+    entry_md:   entryMd,
     mood,
-    created_at:   new Date().toISOString(),
-    updated_at:   new Date().toISOString(),
-    entry_photos: [],
+    final,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    photo_urls: [],
   }
   entries.unshift(entry)
   stubSaveEntries(entries)
@@ -185,73 +202,39 @@ function signOut() {
 }
 
 // ============================================================
-// DATABASE  (real mode; stub mode uses localStorage above)
+// ENTRIES API  (Jupiter graph: (:User)-[:WROTE]->(:JournalEntry))
+// Authenticated by the j2auth device token (userToken global),
+// never by raw mobile — so one kid can't read another's entries.
 // ============================================================
 
-async function loadProfile(userId) {
-  const { data } = await supa
-    .from('profiles').select('*').eq('id', userId).maybeSingle()
-  return data
+async function apiLoadEntries() {
+  const res = await fetch(serverURL + '/journal/entries/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usertoken: userToken, bizid: window.APP_CONFIG.j2BizId })
+  })
+  if (!res.ok) throw new Error('Could not load your entries')
+  const data = await res.json()
+  return data.entries || []
 }
 
-async function createProfile(userId) {
-  const { data, error } = await supa
-    .from('profiles').insert({ id: userId, name: 'Journaler' }).select().single()
-  if (error) throw error
-  return data
-}
-
-async function saveProfileName(userId, name) {
-  const { data, error } = await supa
-    .from('profiles').update({ name }).eq('id', userId).select().single()
-  if (error) throw error
-  return data
-}
-
-async function loadEntries(userId) {
-  const { data, error } = await supa
-    .from('entries')
-    .select('id, body, mood, created_at, updated_at, prompt_date, entry_photos ( id, storage_path )')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data || []
-}
-
-async function postEntry(userId, promptDate, body, mood) {
-  const existing = state.entries.find(e => e.prompt_date === promptDate)
-  if (existing) {
-    const { data, error } = await supa
-      .from('entries')
-      .update({ body, mood, updated_at: new Date().toISOString() })
-      .eq('id', existing.id).select().single()
-    if (error) throw error
-    return data
-  }
-  const { data, error } = await supa
-    .from('entries')
-    .insert({ user_id: userId, prompt_date: promptDate, body, mood })
-    .select().single()
-  if (error) throw error
-  return data
-}
-
-async function uploadPhotos(userId, entryId, staged) {
-  for (const { file } of staged) {
-    const ext  = file.name.split('.').pop().toLowerCase()
-    const path = `${userId}/${entryId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const { error: uploadErr } = await supa.storage
-      .from('photos').upload(path, file, { contentType: file.type })
-    if (uploadErr) throw uploadErr
-    const { error: dbErr } = await supa
-      .from('entry_photos').insert({ entry_id: entryId, storage_path: path })
-    if (dbErr) throw dbErr
-  }
-}
-
-function photoUrl(path) {
-  const { data } = supa.storage.from('photos').getPublicUrl(path)
-  return data.publicUrl
+async function apiPostEntry(promptId, entryMd, mood, final = false) {
+  const res = await fetch(serverURL + '/journal/entry/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      usertoken: userToken,
+      bizid:     window.APP_CONFIG.j2BizId,
+      prompt_id: promptId,
+      entry_md:  entryMd,
+      mood:      mood || null,
+      final
+    })
+  })
+  if (res.status === 409) throw new Error('This entry is already done — it can\'t be changed.')
+  if (!res.ok) throw new Error('Could not save your entry')
+  const data = await res.json()
+  return data.entry
 }
 
 // ============================================================
@@ -326,24 +309,88 @@ function formatDateShort(isoDate) {
 }
 
 // ============================================================
-// DRAFT  (localStorage)
+// EDITOR  (contenteditable canvas ↔ markdown)
 // ============================================================
 
-function saveDraft(promptDate, body, mood) {
-  if (!promptDate) return
-  try { localStorage.setItem(`sp_draft_${promptDate}`, JSON.stringify({ body, mood })) } catch (_) {}
+function getCanvasMd()   { return htmlToMd($('canvas').innerHTML) }
+function setCanvasMd(md) { $('canvas').innerHTML = mdToHtml(md) }
+function getCanvasText() { return ($('canvas').textContent || '').trim() }
+
+// ============================================================
+// AUTOSAVE  (Sheets-style: debounced server save while typing)
+// The entry exists server-side in non-final form, so the writer
+// can leave and pick up later — from any device.
+// ============================================================
+
+const AUTOSAVE_DELAY = 1200  // ms after last keystroke
+
+let autosaveTimer    = null
+let autosaveInFlight = false
+let autosaveQueued   = false
+
+function setSaveStatus(text, cls = '') {
+  const el = $('save-status')
+  el.textContent = text
+  el.className   = `save-status ${cls}`
 }
-function loadDraft(promptDate) {
-  if (!promptDate) return null
-  try { return JSON.parse(localStorage.getItem(`sp_draft_${promptDate}`)) } catch (_) { return null }
+
+function scheduleAutosave() {
+  if (!state.canEdit) return
+  clearTimeout(autosaveTimer)
+  autosaveTimer = setTimeout(doAutosave, AUTOSAVE_DELAY)
 }
-function clearDraft(promptDate) {
-  try { localStorage.removeItem(`sp_draft_${promptDate}`) } catch (_) {}
+
+// Replace-or-insert an entry in local state without re-rendering
+// the canvas (which would fight the cursor while typing)
+function upsertLocalEntry(entry) {
+  const i = state.entries.findIndex(e => e.prompt_id === entry.prompt_id)
+  if (i >= 0) state.entries[i] = entry
+  else state.entries.unshift(entry)
+}
+
+async function doAutosave() {
+  if (!state.canEdit || !state.todayPrompt) return
+  if (!getCanvasText()) return  // nothing written yet
+
+  if (autosaveInFlight) { autosaveQueued = true; return }
+  autosaveInFlight = true
+  setSaveStatus('Saving…')
+
+  try {
+    const md    = getCanvasMd()
+    const entry = STUB_DATA
+      ? stubPostEntry(state.todayPrompt.id, md, state.selectedMood, false)
+      : await apiPostEntry(state.todayPrompt.id, md, state.selectedMood, false)
+    state.currentEntryId = entry.id
+    upsertLocalEntry(entry)
+    renderSidebar()
+    renderWeekProgress()
+    renderStreakHeader()
+    setSaveStatus('Saved ✓', 'saved')
+  } catch (err) {
+    console.error('Autosave failed:', err)
+    setSaveStatus('Not saved — retrying…', 'error')
+    clearTimeout(autosaveTimer)
+    autosaveTimer = setTimeout(doAutosave, 5000)
+  } finally {
+    autosaveInFlight = false
+    if (autosaveQueued) { autosaveQueued = false; doAutosave() }
+  }
 }
 
 // ============================================================
 // RENDER — app screen
 // ============================================================
+
+function renderStreakHeader() {
+  const streak = computeStreak(state.entries)
+  if (streak > 0) {
+    $('header-streak-count').textContent = `${streak}-day streak`
+    show($('header-streak'))
+  } else {
+    hide($('header-streak'))
+  }
+}
 
 function renderApp() {
   const { profile, todayPrompt, entries } = state
@@ -351,14 +398,7 @@ function renderApp() {
   $('user-name').textContent    = profile?.name || ''
   $('user-initial').textContent = (profile?.name || '?')[0].toUpperCase()
 
-  // Streak
-  const streak = computeStreak(entries)
-  if (streak > 0) {
-    $('header-streak-count').textContent = `${streak}-day streak`
-    show($('header-streak'))
-  } else {
-    hide($('header-streak'))
-  }
+  renderStreakHeader()
 
   // Prompt banner — day number = total entries written + 1
   $('prompt-day').textContent     = `Day ${entries.length + 1}`
@@ -381,25 +421,51 @@ function renderApp() {
     weekday: 'long', month: 'long', day: 'numeric'
   })
 
-  // Pre-fill canvas if entry exists for today's prompt
+  // Pre-fill canvas if entry exists for the active prompt
   const existingEntry = todayPrompt
-    ? entries.find(e => e.prompt_date === todayPrompt.date)
+    ? entries.find(e => e.prompt_id === todayPrompt.id)
     : null
 
-  if (existingEntry) {
-    $('canvas').value         = existingEntry.body
-    state.selectedMood        = existingEntry.mood
-    state.currentEntryId      = existingEntry.id
-    $('post-btn').innerHTML   = '<i class="fa-solid fa-rotate" aria-hidden="true"></i> Update entry'
-    renderExistingPhotos(existingEntry.entry_photos || [])
+  setCanvasMd(existingEntry?.entry_md || '')
+  state.selectedMood   = existingEntry?.mood || null
+  state.currentEntryId = existingEntry?.id || null
+  renderExistingPhotos(existingEntry?.photo_urls || [])
+
+  // Editability: only today's prompt, and only until it's finalized.
+  // No going back or forward in time — that's the whole point.
+  const todayStr      = new Date().toISOString().split('T')[0]
+  const isPromptToday = todayPrompt?.date === todayStr
+  const entryFinal    = !!existingEntry?.final
+  state.canEdit       = !!todayPrompt && isPromptToday && !entryFinal
+
+  // Locked note
+  const note = $('locked-note')
+  if (todayPrompt && entryFinal) {
+    note.className = 'locked-note done-note'
+    note.innerHTML = '🎉 You finished this one — nice work! Come back for the next prompt.'
+    show(note)
+  } else if (todayPrompt && !isPromptToday) {
+    const next = state.prompts
+      .filter(p => p.date > todayStr)
+      .sort((a, b) => (a.date < b.date ? -1 : 1))[0]
+    note.className = 'locked-note'
+    note.innerHTML = next
+      ? `🌞 No prompt today — your next one arrives ${formatDateShort(next.date)}. Enjoy the day!`
+      : `🌞 That's all the prompts for now — more coming soon!`
+    show(note)
   } else {
-    const draft = todayPrompt ? loadDraft(todayPrompt.date) : null
-    $('canvas').value    = draft?.body || ''
-    state.selectedMood   = draft?.mood || null
-    state.currentEntryId = null
-    $('post-btn').innerHTML = '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Post entry'
-    renderExistingPhotos([])
+    hide(note)
   }
+
+  // Lock/unlock the editor chrome
+  const canvas = $('canvas')
+  canvas.contentEditable = state.canEdit ? 'true' : 'false'
+  canvas.classList.toggle('locked', !state.canEdit)
+  document.querySelector('.editor-toolbar').style.display = state.canEdit ? '' : 'none'
+  document.querySelectorAll('.mood-btn').forEach(b => b.disabled = !state.canEdit)
+  $('photo-add-btn').disabled = !state.canEdit
+  $('done-btn').style.display = state.canEdit ? '' : 'none'
+  setSaveStatus('')
 
   updateWordCount()
   renderMoodButtons()
@@ -414,14 +480,13 @@ function renderMoodButtons() {
   })
 }
 
-function renderExistingPhotos(photos) {
+function renderExistingPhotos(photoUrls) {
   document.querySelectorAll('.photo-existing').forEach(el => el.remove())
-  if (STUB_DATA) return  // no photo URLs in stub mode
   const strip = $('photo-strip'), addBtn = $('photo-add-btn')
-  photos.forEach(p => {
+  photoUrls.forEach(url => {
     const div = document.createElement('div')
     div.className = 'photo-thumb photo-existing'
-    div.innerHTML = `<img src="${photoUrl(p.storage_path)}" alt="Entry photo">`
+    div.innerHTML = `<img src="${url}" alt="Entry photo">`
     strip.insertBefore(div, addBtn)
   })
 }
@@ -451,10 +516,11 @@ function renderSidebar() {
 
   list.innerHTML = entries.map(entry => {
     const mood       = entry.mood || ''
-    const prompt     = state.prompts.find(p => p.date === entry.prompt_date)
+    const prompt     = state.prompts.find(p => p.id === entry.prompt_id)
     const promptText = prompt?.body || ''
-    const preview    = entry.body.slice(0, 110)
-    const photoCount = entry.entry_photos?.length || 0
+    const plainText  = mdToText(entry.entry_md)
+    const preview    = plainText.slice(0, 110)
+    const photoCount = entry.photo_urls?.length || 0
     const emoji      = MOOD_EMOJI[mood] || ''
 
     const moodHtml = mood ? `
@@ -474,7 +540,7 @@ function renderSidebar() {
            aria-label="Open entry from ${formatDate(entry.created_at)}">
         ${moodHtml}
         <div class="entry-card-prompt">${promptText.slice(0, 72)}${promptText.length > 72 ? '…' : ''}</div>
-        <div class="entry-card-preview">"${preview}${entry.body.length > 110 ? '…' : ''}"</div>
+        <div class="entry-card-preview">"${preview}${plainText.length > 110 ? '…' : ''}"</div>
         <div class="entry-card-footer">
           <span class="entry-card-date">${formatDate(entry.created_at)}</span>
           ${photoHtml}
@@ -499,7 +565,7 @@ function renderWeekProgress() {
 }
 
 function updateWordCount() {
-  const n = wordCount($('canvas').value)
+  const n = wordCount(getCanvasText())
   $('word-count').textContent = `${n} word${n !== 1 ? 's' : ''}`
 }
 
@@ -508,9 +574,9 @@ function updateWordCount() {
 // ============================================================
 
 function renderMobile() {
-  const entries    = STUB_DATA ? stubLoadEntries() : state.entries
-  const entryDates = new Set(entries.map(e => e.prompt_date))
-  const today      = new Date().toISOString().split('T')[0]
+  const entries  = STUB_DATA ? stubLoadEntries() : state.entries
+  const doneIds  = new Set(entries.filter(e => e.final).map(e => e.prompt_id))
+  const today    = new Date().toISOString().split('T')[0]
 
   // Personalized greeting — profile is loaded by the time this renders
   const name = state.profile?.name || localStorage.getItem('sp_user_name') || ''
@@ -535,7 +601,7 @@ function renderMobile() {
   }
 
   $('mobile-prompt-list').innerHTML = visible.map(p => {
-    const done    = entryDates.has(p.date)
+    const done    = doneIds.has(p.id)
     const isToday = p.date === today
     const color   = PROMPT_TILE_COLORS[
       Math.max(0, state.prompts.indexOf(p)) % PROMPT_TILE_COLORS.length
@@ -707,11 +773,10 @@ $('profile-form').addEventListener('submit', async e => {
   const btn = $('save-name-btn')
   btn.disabled = true; btn.textContent = 'Saving…'
   try {
-    if (STUB_DATA) {
-      state.profile = { id: state.user, name }
-    } else {
-      state.profile = await saveProfileName(state.user, name)
+    if (!STUB_AUTH) {
+      await pushProfile(state.user, { name })
     }
+    state.profile = { ...(state.profile || {}), id: state.user, name }
     localStorage.setItem('sp_user_name', name)
     hide($('profile-setup-screen'))
     await loadAndRenderApp()
@@ -728,15 +793,55 @@ $('profile-form').addEventListener('submit', async e => {
 
 $('canvas').addEventListener('input', () => {
   updateWordCount()
-  if (state.todayPrompt) saveDraft(state.todayPrompt.date, $('canvas').value, state.selectedMood)
+  scheduleAutosave()
 })
 
 document.querySelectorAll('.mood-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (!state.canEdit) return
     state.selectedMood = state.selectedMood === btn.dataset.mood ? null : btn.dataset.mood
     renderMoodButtons()
-    if (state.todayPrompt) saveDraft(state.todayPrompt.date, $('canvas').value, state.selectedMood)
+    scheduleAutosave()
   })
+})
+
+// --- Formatting toolbar ---
+
+function applyFormat(cmd) {
+  $('canvas').focus()
+  document.execCommand(cmd, false, null)
+  updateToolbarState()
+}
+
+function applyLink() {
+  $('canvas').focus()
+  const sel = window.getSelection()
+  if (!sel || sel.isCollapsed) return  // need a selection to linkify
+  let url = window.prompt('Link to where? (paste a URL)')
+  if (!url) return
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url
+  document.execCommand('createLink', false, url)
+}
+
+$('fmt-bold').addEventListener('click', () => applyFormat('bold'))
+$('fmt-italic').addEventListener('click', () => applyFormat('italic'))
+$('fmt-link').addEventListener('click', applyLink)
+
+// Reflect bold/italic state of the cursor position in the toolbar
+function updateToolbarState() {
+  $('fmt-bold').classList.toggle('active', document.queryCommandState('bold'))
+  $('fmt-italic').classList.toggle('active', document.queryCommandState('italic'))
+}
+document.addEventListener('selectionchange', () => {
+  if (document.activeElement === $('canvas')) updateToolbarState()
+})
+
+// ⌘B / ⌘I are native in contenteditable; add ⌘K for links
+$('canvas').addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault()
+    applyLink()
+  }
 })
 
 $('photo-add-btn').addEventListener('click', () => $('photo-file-input').click())
@@ -759,46 +864,52 @@ $('photo-strip').addEventListener('click', e => {
   renderStagedPhotos()
 })
 
-$('post-btn').addEventListener('click', async () => {
-  const body = $('canvas').value.trim()
-  if (!body) { $('canvas').focus(); return }
-  if (!state.todayPrompt || state.saving) return
+// --- Done! flow: confirm modal → finalize → lock ---
+
+$('done-btn').addEventListener('click', () => {
+  if (!state.canEdit || state.saving) return
+  if (!getCanvasText()) { $('canvas').focus(); return }
+  show($('confirm-modal'))
+  $('confirm-cancel').focus()
+})
+
+$('confirm-cancel').addEventListener('click', () => hide($('confirm-modal')))
+
+$('confirm-modal').addEventListener('click', e => {
+  if (e.target === $('confirm-modal')) hide($('confirm-modal'))
+})
+
+$('confirm-done').addEventListener('click', async () => {
+  hide($('confirm-modal'))
+  if (!state.canEdit || !state.todayPrompt || state.saving) return
+
+  // Cancel any pending autosave — the final write supersedes it
+  clearTimeout(autosaveTimer)
 
   state.saving = true
-  const btn    = $('post-btn')
-  btn.disabled = true; btn.textContent = 'Posting…'
+  const btn    = $('done-btn')
+  btn.disabled = true; btn.textContent = 'Finishing…'
+  setSaveStatus('Saving…')
 
   try {
-    let entry
+    const entryMd = getCanvasMd()
     if (STUB_DATA) {
-      entry = stubPostEntry(state.todayPrompt.date, body, state.selectedMood)
+      stubPostEntry(state.todayPrompt.id, entryMd, state.selectedMood, true)
     } else {
-      entry = await postEntry(state.user, state.todayPrompt.date, body, state.selectedMood)
+      await apiPostEntry(state.todayPrompt.id, entryMd, state.selectedMood, true)
       if (state.stagedPhotos.length > 0) {
-        await uploadPhotos(state.user, entry.id, state.stagedPhotos)
-        state.stagedPhotos.forEach(p => URL.revokeObjectURL(p.previewUrl))
-        state.stagedPhotos = []
+        console.warn('Photo upload not wired up yet (S3) — skipping', state.stagedPhotos.length, 'photos')
       }
     }
-    clearDraft(state.todayPrompt.date)
-    state.entries = STUB_DATA ? stubLoadEntries() : await loadEntries(state.user)
-    renderApp()
-    btn.innerHTML = '✓ Posted!'
-    setTimeout(() => {
-      btn.innerHTML = '<i class="fa-solid fa-rotate" aria-hidden="true"></i> Update entry'
-      btn.disabled  = false
-    }, 1600)
+    state.entries = STUB_DATA ? stubLoadEntries() : await apiLoadEntries()
+    renderApp()  // locks the editor, shows the done note
   } catch (err) {
-    console.error('Post error:', err)
-    btn.textContent = 'Error — try again'
-    setTimeout(() => {
-      btn.innerHTML = state.currentEntryId
-        ? '<i class="fa-solid fa-rotate" aria-hidden="true"></i> Update entry'
-        : '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Post entry'
-      btn.disabled = false
-    }, 2200)
+    console.error('Finalize error:', err)
+    setSaveStatus('Could not finish — try again', 'error')
   } finally {
     state.saving = false
+    btn.disabled = false
+    btn.innerHTML = '<i class="fa-solid fa-flag-checkered" aria-hidden="true"></i> Done!'
   }
 })
 
@@ -846,10 +957,10 @@ $('entries-list').addEventListener('keydown', e => {
 })
 
 function openModal(entry) {
-  const prompt = state.prompts.find(p => p.date === entry.prompt_date)
+  const prompt = state.prompts.find(p => p.id === entry.prompt_id)
   $('modal-prompt').textContent = prompt?.body || ''
   $('modal-date').textContent   = formatDate(entry.created_at)
-  $('modal-body').textContent   = entry.body
+  $('modal-body').innerHTML     = mdToHtml(entry.entry_md)
 
   const emoji = MOOD_EMOJI[entry.mood] || ''
   if (entry.mood) {
@@ -859,17 +970,15 @@ function openModal(entry) {
     $('modal-mood').style.display = 'none'
   }
 
-  const photos = entry.entry_photos || []
+  const photos = entry.photo_urls || []
   const grid   = $('modal-photos')
   grid.innerHTML = ''
   grid.style.display = photos.length ? 'grid' : 'none'
-  if (!STUB_DATA) {
-    photos.forEach(p => {
-      const img = document.createElement('img')
-      img.src = photoUrl(p.storage_path); img.alt = 'Journal photo'
-      grid.appendChild(img)
-    })
-  }
+  photos.forEach(url => {
+    const img = document.createElement('img')
+    img.src = url; img.alt = 'Journal photo'
+    grid.appendChild(img)
+  })
 
   show($('entry-modal'))
   $('modal-close').focus()
@@ -886,25 +995,20 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hide($('entr
 async function loadAndRenderApp() {
   state.prompts     = await loadPrompts()
   state.todayPrompt = getActivePrompt(state.prompts)
-  state.entries     = STUB_DATA ? stubLoadEntries() : await loadEntries(state.user)
+  state.entries     = STUB_DATA ? stubLoadEntries() : await apiLoadEntries()
   renderApp()
 }
 
 async function handleAuthenticated() {
   hide($('auth-screen'))
   try {
-    if (STUB_DATA) {
-      // Profile lives on the REGISTERED_FOR relationship in the graph
-      // (biz_profile in the /userprofile/ response), localStorage fallback
-      const vars = (!STUB_AUTH && typeof userProfile !== 'undefined' && userProfile?.biz_profile) || {}
-      state.profile = {
-        id:       state.user,
-        name:     vars.name || localStorage.getItem('sp_user_name') || '',
-        birthday: vars.birthday || null,
-      }
-    } else {
-      state.profile = await loadProfile(state.user)
-      if (!state.profile) state.profile = await createProfile(state.user)
+    // Profile lives on the REGISTERED_FOR relationship in the graph
+    // (biz_profile in the /userprofile/ response), localStorage fallback
+    const vars = (!STUB_AUTH && typeof userProfile !== 'undefined' && userProfile?.biz_profile) || {}
+    state.profile = {
+      id:       state.user,
+      name:     vars.name || localStorage.getItem('sp_user_name') || '',
+      birthday: vars.birthday || null,
     }
 
     if (!state.profile.name || state.profile.name === 'Journaler') {

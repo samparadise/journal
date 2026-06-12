@@ -165,11 +165,27 @@
 
     <div class="entry-meta">
       <span class="entry-date-label" id="entry-date"></span>
+      <span class="save-status" id="save-status" aria-live="polite"></span>
     </div>
 
-    <textarea id="canvas" class="writing-canvas" rows="8"
-              placeholder="Start writing here…"
-              aria-label="Write your journal entry"></textarea>
+    <div class="locked-note hidden" id="locked-note"></div>
+
+    <div class="editor-wrap">
+      <div class="editor-toolbar" role="toolbar" aria-label="Text formatting">
+        <button class="fmt-btn" id="fmt-bold" type="button" title="Bold (⌘B)" aria-label="Bold">
+          <i class="fa-solid fa-bold" aria-hidden="true"></i>
+        </button>
+        <button class="fmt-btn" id="fmt-italic" type="button" title="Italic (⌘I)" aria-label="Italic">
+          <i class="fa-solid fa-italic" aria-hidden="true"></i>
+        </button>
+        <button class="fmt-btn" id="fmt-link" type="button" title="Add link (⌘K)" aria-label="Add link">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div id="canvas" class="writing-canvas" contenteditable="true"
+           data-placeholder="Start writing here…"
+           aria-label="Write your journal entry" role="textbox" aria-multiline="true"></div>
+    </div>
 
     <div class="canvas-bottom">
 
@@ -196,9 +212,9 @@
       </div>
 
       <div class="canvas-footer">
-        <button class="post-btn" id="post-btn" type="button">
-          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
-          Post entry
+        <button class="post-btn" id="done-btn" type="button">
+          <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+          Done!
         </button>
       </div>
 
@@ -230,6 +246,24 @@
 </div>
 
 <!-- ============================================================
+     DONE CONFIRM MODAL
+     ============================================================ -->
+<div id="confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-heading">
+  <div class="modal-card confirm-card">
+    <div class="confirm-emoji">🏁</div>
+    <div class="confirm-heading" id="confirm-heading">Finish this entry?</div>
+    <p class="confirm-text">
+      Once you're done, your entry is locked in — no more changes.
+      Make sure you've said everything you want to say!
+    </p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel-btn" id="confirm-cancel" type="button">Keep writing</button>
+      <button class="confirm-done-btn" id="confirm-done" type="button">Yes, I'm done!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      ENTRY MODAL
      ============================================================ -->
 <div id="entry-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
@@ -248,7 +282,9 @@
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown@7.1.2/dist/turndown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="j2auth.js"></script>
 <script src="js/config.js"></script>
 <script src="js/app.js"></script>

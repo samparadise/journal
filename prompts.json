@@ -1,153 +1,27 @@
 [
   {
     "date": "2026-06-09",
+    "id": "20260609-beach",
     "body": "Describe the ultimate beach trip you'd take this summer.",
     "subtext": "Where would you go? Who would you take? Write as much or as little as you want. A sentence, a story, or anything in between... but more is better!",
     "icon": "beach"
   },
   {
-    "date": "2026-06-11",
+    "date": "2026-06-12",
+    "id": "20260611-oneday",
     "body": "If you could spend a whole day doing just one thing, what would it be?",
     "subtext": "Go as specific as you can — what does the whole day actually look like?"
   },
   {
     "date": "2026-06-13",
+    "id": "20260613-someone",
     "body": "Write about someone who inspired you recently — could be anyone.",
     "subtext": "It doesn't have to be a big dramatic moment."
   },
   {
     "date": "2026-06-16",
+    "id": "20260616-holiday",
     "body": "Invent a new holiday. What's it called, and how do people celebrate it?",
     "subtext": "The weirder the better."
-  },
-  {
-    "date": "2026-06-18",
-    "body": "You wake up and discover you have one superpower for exactly 24 hours. What is it and what do you do?",
-    "subtext": null
-  },
-  {
-    "date": "2026-06-20",
-    "body": "Describe a sound that makes you feel completely peaceful.",
-    "subtext": "Try to describe it so well that someone who's never heard it can imagine it."
-  },
-  {
-    "date": "2026-06-23",
-    "body": "What's something you changed your mind about recently?",
-    "subtext": "Could be something big or something small."
-  },
-  {
-    "date": "2026-06-25",
-    "body": "Write the opening paragraph of a story that starts with: \"The summer I found the map...\"",
-    "subtext": "It can go anywhere — realistic, fantasy, mystery, whatever you want."
-  },
-  {
-    "date": "2026-06-27",
-    "body": "Describe your perfect Saturday morning in as much detail as possible.",
-    "subtext": "What do you hear, smell, eat? Who's there?"
-  },
-  {
-    "date": "2026-06-30",
-    "body": "If you could swap lives with anyone for a week — real or fictional — who would it be and why?",
-    "subtext": null
-  },
-  {
-    "date": "2026-07-02",
-    "body": "What's the bravest thing you've done this year?",
-    "subtext": "Big or small — bravery is bravery."
-  },
-  {
-    "date": "2026-07-07",
-    "body": "Describe a place you've never been but have always wanted to visit.",
-    "subtext": "What does it look, sound, and smell like in your imagination?"
-  },
-  {
-    "date": "2026-07-09",
-    "body": "Write a letter to yourself to open at the end of summer.",
-    "subtext": "What do you hope you'll have done? What do you want to remember?"
-  },
-  {
-    "date": "2026-07-11",
-    "body": "What's something you're really good at that most people don't know about?",
-    "subtext": null
-  },
-  {
-    "date": "2026-07-14",
-    "body": "If you could have dinner with anyone — living, historical, or fictional — who would it be, and what would you ask them?",
-    "subtext": null
-  },
-  {
-    "date": "2026-07-16",
-    "body": "Describe a moment this summer when you felt completely happy.",
-    "subtext": "Even a tiny ordinary moment counts."
-  },
-  {
-    "date": "2026-07-18",
-    "body": "Make up a creature that doesn't exist. Describe what it looks like, where it lives, and what it eats.",
-    "subtext": "The stranger the better."
-  },
-  {
-    "date": "2026-07-21",
-    "body": "What's one thing you'd change about the world if you could?",
-    "subtext": "Why that, and how would it work?"
-  },
-  {
-    "date": "2026-07-23",
-    "body": "Describe a skill or hobby you'd love to learn. What's stopping you?",
-    "subtext": null
-  },
-  {
-    "date": "2026-07-25",
-    "body": "Write about a friendship — what makes it special, and what's one memory that shows exactly why.",
-    "subtext": null
-  },
-  {
-    "date": "2026-07-28",
-    "body": "If you directed a movie about your life so far, what would the title be and who would play you?",
-    "subtext": "Write the one-sentence plot summary too."
-  },
-  {
-    "date": "2026-07-30",
-    "body": "What's the best piece of advice you've ever received?",
-    "subtext": "Who gave it to you, and did you actually follow it?"
-  },
-  {
-    "date": "2026-08-01",
-    "body": "Describe a time you surprised yourself.",
-    "subtext": null
-  },
-  {
-    "date": "2026-08-04",
-    "body": "If you could live in any time period for one year, when would you choose and why?",
-    "subtext": "Think about what you'd gain — and what you'd miss."
-  },
-  {
-    "date": "2026-08-06",
-    "body": "What's something you're looking forward to about the school year ahead?",
-    "subtext": "Even one tiny thing counts."
-  },
-  {
-    "date": "2026-08-08",
-    "body": "Write about your favorite thing you ate this summer.",
-    "subtext": "Describe it like you're trying to make someone hungry just by reading."
-  },
-  {
-    "date": "2026-08-11",
-    "body": "What's a question you've been thinking about that you don't have an answer to yet?",
-    "subtext": "It can be about anything — big or small."
-  },
-  {
-    "date": "2026-08-13",
-    "body": "Describe your dream house. Where is it, what does it look like, and what's in it?",
-    "subtext": null
-  },
-  {
-    "date": "2026-08-15",
-    "body": "What's something you did this summer that you're proud of?",
-    "subtext": "Doesn't have to be a big achievement."
-  },
-  {
-    "date": "2026-08-18",
-    "body": "If your summer had a soundtrack, what songs would be on it?",
-    "subtext": "Pick three and say why each one fits."
   }
 ]

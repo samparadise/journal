@@ -588,30 +588,116 @@ html, body {
   background: var(--surface);
 }
 
-.entry-meta { display: flex; align-items: center; flex-shrink: 0; }
+.entry-meta { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .entry-date-label { font-size: 16px; color: var(--ink-muted); font-weight: 600; }
+
+/* Autosave indicator (Sheets-style) */
+.save-status {
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: opacity 0.3s;
+}
+.save-status.saved { color: var(--green-500); }
+.save-status.error { color: #E24B4A; }
+
+/* Read-only notice (finalized entry, or not today's prompt) */
+.locked-note {
+  background: var(--yellow-100);
+  border: 1.5px solid var(--yellow-400);
+  border-radius: 12px;
+  padding: 11px 15px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #5C3A00;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.locked-note.done-note {
+  background: var(--green-100);
+  border-color: var(--green-500);
+  color: #064535;
+}
+
+/* Locked editor */
+.writing-canvas.locked {
+  background: var(--purple-50);
+  border-color: var(--border);
+  color: var(--ink-light);
+}
+.mood-btn:disabled,
+.photo-add-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Editor: toolbar + contenteditable canvas */
+.editor-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 7px 10px;
+  border: 2px solid var(--border);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  background: var(--purple-50);
+}
+
+.fmt-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-light);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.fmt-btn:hover  { background: var(--purple-100); color: var(--purple-600); }
+.fmt-btn.active { background: var(--purple-500); color: #fff; }
 
 .writing-canvas {
   border: 2px solid var(--border);
-  border-radius: 16px;
+  border-radius: 0 0 16px 16px;
   padding: 17px;
   font-size: 18px;
   line-height: 1.9;
   color: var(--ink);
-  resize: none;
   width: 100%;
   font-family: var(--font-body);
   background: var(--surface);
   outline: none;
   flex: 1;
   min-height: 180px;
+  overflow-y: auto;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .writing-canvas:focus {
   border-color: var(--purple-500);
   box-shadow: 0 0 0 4px var(--purple-100);
 }
-.writing-canvas::placeholder { color: #C8C6D4; }
+/* Placeholder for empty contenteditable */
+.writing-canvas:empty::before {
+  content: attr(data-placeholder);
+  color: #C8C6D4;
+  pointer-events: none;
+}
+.writing-canvas a { color: var(--purple-600); }
 
 .canvas-bottom { display: flex; flex-direction: column; gap: 11px; flex-shrink: 0; }
 
@@ -980,6 +1066,8 @@ html, body {
   border-radius: 20px;
 }
 
+.modal-body-text a { color: var(--purple-600); }
+.modal-body-text p { margin-bottom: 0.8em; }
 .modal-body-text {
   font-size: 18px;
   line-height: 1.9;
@@ -1001,6 +1089,64 @@ html, body {
   border: 1.5px solid var(--border);
   display: block;
 }
+
+/* ============================================================
+   DONE CONFIRM MODAL
+   ============================================================ */
+
+.confirm-card {
+  max-width: 420px;
+  text-align: center;
+  padding: 32px 30px 28px;
+}
+.confirm-emoji { font-size: 44px; margin-bottom: 10px; }
+.confirm-heading {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--purple-800);
+  margin-bottom: 10px;
+}
+.confirm-text {
+  font-size: 16px;
+  color: var(--ink-light);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.confirm-cancel-btn {
+  padding: 12px 22px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-light);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.confirm-cancel-btn:hover { border-color: var(--purple-400); color: var(--purple-600); }
+
+.confirm-done-btn {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 12px;
+  background: var(--green-500);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
+  transition: background 0.15s, transform 0.1s;
+}
+.confirm-done-btn:hover  { background: #16805E; }
+.confirm-done-btn:active { transform: scale(0.97); }
 
 /* ============================================================
    RESPONSIVE
