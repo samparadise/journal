@@ -19,5 +19,12 @@
     "body": "Invent a new holiday. What's it called, and how do people celebrate it?",
     "subtext": "The weirder the better.",
     "icon": "holiday"
+  },
+  {
+    "date": "2026-06-18",
+    "id": "20260618-place",
+    "body": "Describe a place you've never been but are sure you'd love.",
+    "subtext": "What does it look, sound, and smell like in your imagination?",
+    "icon": "plane"
   }
 ]
