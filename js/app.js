@@ -380,7 +380,7 @@ async function loadPrompts() {
 }
 
 function getActivePrompt(prompts) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDate()
   const past  = prompts.filter(p => p.date <= today)
   if (!past.length) return null
   return past.reduce((a, b) => (a.date > b.date ? a : b))
@@ -390,19 +390,28 @@ function getActivePrompt(prompts) {
 // COMPUTED HELPERS
 // ============================================================
 
+// Local-time YYYY-MM-DD. Using toISOString() here would give UTC,
+// which rolls over to "tomorrow" in the evening for US timezones.
+function localDate(d = new Date()) {
+  const y  = d.getFullYear()
+  const m  = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
 function computeStreak(entries) {
   if (!entries.length) return 0
-  const dates = [...new Set(entries.map(e => e.created_at.split('T')[0]))].sort().reverse()
-  const todayStr = new Date().toISOString().split('T')[0]
-  const yest     = new Date(); yest.setDate(yest.getDate() - 1)
-  const yesterdayStr = yest.toISOString().split('T')[0]
+  const dates = [...new Set(entries.map(e => localDate(new Date(e.created_at))))].sort().reverse()
+  const todayStr     = localDate()
+  const yest         = new Date(); yest.setDate(yest.getDate() - 1)
+  const yesterdayStr = localDate(yest)
   if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0
   let streak = 0, cursor = dates[0]
   for (const date of dates) {
     if (date === cursor) {
       streak++
-      const d = new Date(cursor); d.setDate(d.getDate() - 1)
-      cursor = d.toISOString().split('T')[0]
+      const d = new Date(cursor + 'T00:00:00'); d.setDate(d.getDate() - 1)
+      cursor = localDate(d)
     } else { break }
   }
   return streak
@@ -414,13 +423,13 @@ function getWeekDays(entries) {
   const monday = new Date(now)
   monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
   monday.setHours(0, 0, 0, 0)
-  const todayStr   = now.toISOString().split('T')[0]
-  const entryDates = new Set(entries.map(e => e.created_at.split('T')[0]))
+  const todayStr   = localDate(now)
+  const entryDates = new Set(entries.map(e => localDate(new Date(e.created_at))))
   const dayLabels  = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
   const dayNames   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   return Array.from({ length: 7 }, (_, i) => {
     const d   = new Date(monday); d.setDate(monday.getDate() + i)
-    const iso = d.toISOString().split('T')[0]
+    const iso = localDate(d)
     return { label: dayLabels[i], name: dayNames[i], date: iso,
              done: entryDates.has(iso), isToday: iso === todayStr }
   })
@@ -564,7 +573,7 @@ function renderApp() {
 
   // Editability: only today's prompt, and only until it's finalized.
   // No going back or forward in time — that's the whole point.
-  const todayStr      = new Date().toISOString().split('T')[0]
+  const todayStr      = localDate()
   const isPromptToday = todayPrompt?.date === todayStr
   const entryFinal    = !!existingEntry?.final
   state.canEdit       = !!todayPrompt && isPromptToday && !entryFinal
@@ -714,7 +723,7 @@ function tileColorForPrompt(p) {
 
 function renderMobile() {
   const entries = STUB_DATA ? stubLoadEntries() : state.entries
-  const today   = new Date().toISOString().split('T')[0]
+  const today   = localDate()
 
   // Personalized greeting — profile is loaded by the time this renders
   const name = state.profile?.name || localStorage.getItem('sp_user_name') || ''
