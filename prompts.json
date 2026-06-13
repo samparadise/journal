@@ -1,18 +1,5 @@
 [
   {
-    "date": "2026-06-09",
-    "id": "20260609-beach",
-    "body": "Describe the ultimate beach trip you'd take this summer.",
-    "subtext": "Where would you go? Who would you take? Write as much or as little as you want. A sentence, a story, or anything in between... but more is better!",
-    "icon": "beach"
-  },
-  {
-    "date": "2026-06-12",
-    "id": "20260611-oneday",
-    "body": "If you could spend a whole day doing just one thing, what would it be?",
-    "subtext": "Go as specific as you can — what does the whole day actually look like?"
-  },
-  {
     "date": "2026-06-13",
     "id": "20260613-super",
     "body": "If you woke up with a super power tomorrow, what would it be?",
@@ -20,9 +7,17 @@
     "icon": "super"
   },
   {
+    "date": "2026-06-14",
+    "id": "20260614-beach",
+    "body": "Describe the ultimate beach trip you'd take this summer.",
+    "subtext": "Where would you go? Who would you take? What are the top 3 things you'd want to do?",
+    "icon": "beach"
+  },
+  {
     "date": "2026-06-16",
     "id": "20260616-holiday",
     "body": "Invent a new holiday. What's it called, and how do people celebrate it?",
-    "subtext": "The weirder the better."
+    "subtext": "The weirder the better.",
+    "icon": "holiday"
   }
 ]
