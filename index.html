@@ -40,19 +40,35 @@
 
   <div class="mobile-greeting" id="mobile-greeting"></div>
 
-  <div class="mobile-streak-wrap hidden" id="mobile-streak-wrap">
-    <span class="mobile-streak-flame">🔥</span>
-    <span class="mobile-streak-text" id="mobile-streak-text"></span>
+  <!-- Score stats -->
+  <div class="mobile-stats" id="mobile-stats">
+    <div class="mobile-stat">
+      <span class="mobile-stat-num" id="stat-entries">0</span>
+      <span class="mobile-stat-label">entries</span>
+    </div>
+    <div class="mobile-stat">
+      <span class="mobile-stat-num" id="stat-streak">0</span>
+      <span class="mobile-stat-label">🔥 streak</span>
+    </div>
+    <div class="mobile-stat">
+      <span class="mobile-stat-num" id="stat-words">0</span>
+      <span class="mobile-stat-label">words</span>
+    </div>
   </div>
 
-  <div class="mobile-cta">
+  <!-- Collected topic tiles -->
+  <div class="mobile-list-heading">Your collection</div>
+  <div class="mobile-trophy-grid" id="mobile-trophy-grid"></div>
+  <div class="mobile-trophy-empty-msg" id="mobile-empty" style="display:none">
+    No entries yet — your collection fills up as you finish each prompt. ✨
+  </div>
+
+  <!-- "go write" CTA, shown when today's prompt isn't done yet -->
+  <div class="mobile-cta hidden" id="mobile-cta">
     <div class="mobile-cta-emoji">💻</div>
-    <p class="mobile-cta-heading">Open Summer Pages on your MacBook to write!</p>
-    <p class="mobile-cta-sub">Writing works best on a big screen — come back here anytime to check your progress.</p>
+    <p class="mobile-cta-heading" id="mobile-cta-heading">Today's prompt is waiting!</p>
+    <p class="mobile-cta-sub">Open Summer Pages on your MacBook to write — it works best on a big screen.</p>
   </div>
-
-  <div class="mobile-list-heading">Your prompts</div>
-  <div class="mobile-prompt-list" id="mobile-prompt-list"></div>
 
 </div>
 

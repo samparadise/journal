@@ -706,57 +706,69 @@ function updateWordCount() {
 // RENDER — mobile screen
 // ============================================================
 
+function tileColorForPrompt(p) {
+  return PROMPT_TILE_COLORS[
+    Math.max(0, state.prompts.indexOf(p)) % PROMPT_TILE_COLORS.length
+  ]
+}
+
 function renderMobile() {
-  const entries  = STUB_DATA ? stubLoadEntries() : state.entries
-  const doneIds  = new Set(entries.filter(e => e.final).map(e => e.prompt_id))
-  const today    = new Date().toISOString().split('T')[0]
+  const entries = STUB_DATA ? stubLoadEntries() : state.entries
+  const today   = new Date().toISOString().split('T')[0]
 
   // Personalized greeting — profile is loaded by the time this renders
   const name = state.profile?.name || localStorage.getItem('sp_user_name') || ''
   $('mobile-greeting').textContent = getGreeting(name)
 
-  // Streak on mobile
-  const streak = computeStreak(entries)
-  if (streak > 0) {
-    $('mobile-streak-text').textContent = `${streak}-day streak`
-    show($('mobile-streak-wrap'))
+  // Completed (finalized) entries are the ones that "count"
+  const doneEntries = entries.filter(e => e.final)
+
+  // --- Stats row ---
+  const totalWords = doneEntries.reduce(
+    (sum, e) => sum + wordCount(mdToText(e.entry_md)), 0
+  )
+  $('stat-entries').textContent = doneEntries.length
+  $('stat-streak').textContent  = computeStreak(entries)
+  $('stat-words').textContent   = totalWords >= 1000
+    ? (totalWords / 1000).toFixed(1) + 'k'
+    : totalWords
+
+  // --- Trophy collection: one tile per completed prompt, oldest first ---
+  const earned = doneEntries
+    .map(e => state.prompts.find(p => p.id === e.prompt_id))
+    .filter(Boolean)
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
+
+  const grid = $('mobile-trophy-grid')
+
+  if (!earned.length) {
+    grid.style.display = 'none'
+    grid.innerHTML = ''
+    $('mobile-empty').style.display = ''
+  } else {
+    grid.style.display = ''
+    $('mobile-empty').style.display = 'none'
+    grid.innerHTML = earned.map(p => {
+      const color = tileColorForPrompt(p)
+      const inner = p.icon
+        ? `<img src="icons/${p.icon}.svg" alt="" aria-hidden="true">`
+        : `<span style="font-size:26px">✏️</span>`
+      return `
+        <div class="mobile-trophy" style="background:${color}">
+          ${inner}
+          <span class="mobile-trophy-label">${formatDateShort(p.date)}</span>
+        </div>`
+    }).join('')
   }
 
-  // Show recent + upcoming prompts (past 3 + next 3)
-  const past     = state.prompts.filter(p => p.date <= today).slice(-4).reverse()
-  const upcoming = state.prompts.filter(p => p.date > today).slice(0, 3)
-  const visible  = [...past, ...upcoming]
-
-  if (!visible.length) {
-    $('mobile-prompt-list').innerHTML =
-      `<div style="color:var(--purple-300);font-size:13px;text-align:center;padding:20px 0;">No prompts yet — check back soon!</div>`
-    return
+  // --- "go write" CTA when today's prompt is live and unfinished ---
+  const todayPrompt = state.prompts.find(p => p.date === today)
+  const todayDone   = todayPrompt && doneEntries.some(e => e.prompt_id === todayPrompt.id)
+  if (todayPrompt && !todayDone) {
+    show($('mobile-cta'))
+  } else {
+    hide($('mobile-cta'))
   }
-
-  $('mobile-prompt-list').innerHTML = visible.map(p => {
-    const done    = doneIds.has(p.id)
-    const isToday = p.date === today
-    const color   = PROMPT_TILE_COLORS[
-      Math.max(0, state.prompts.indexOf(p)) % PROMPT_TILE_COLORS.length
-    ]
-    const iconHtml = p.icon
-      ? `<div class="mobile-prompt-icon" style="background:${color}">
-           <img src="icons/${p.icon}.svg" alt="" aria-hidden="true">
-         </div>`
-      : `<div class="mobile-prompt-check">
-           ${done ? '<i class="fa-solid fa-check" style="font-size:11px;"></i>' : ''}
-         </div>`
-
-    return `
-      <div class="mobile-prompt-item ${done ? 'done' : ''}">
-        ${iconHtml}
-        <div class="mobile-prompt-item-body">
-          <div class="mobile-prompt-date">${isToday ? 'Today' : formatDateShort(p.date)}</div>
-          <div class="mobile-prompt-text">${p.body}</div>
-        </div>
-        ${done ? '<i class="fa-solid fa-check mobile-done-check" aria-hidden="true"></i>' : ''}
-      </div>`
-  }).join('')
 }
 
 // ============================================================
