@@ -1,0 +1,150 @@
+{
+  "version": 1,
+
+  "_README": "Declarative description of every situation in which a player receives an SMS. A daily pipeline evaluates scenarios against each player's computed facts, picks the matching segment, and hands that segment's intent/tone to an LLM which writes the final message. JSON has no comments, so fields prefixed with _ are documentation only and are ignored by the pipeline.",
+
+  "settings": {
+    "timezone": "America/Chicago",
+    "site_link": "https://july-journal.com",
+    "sender_label": "Summer Pages",
+    "_quiet_hours": "Never send outside this window, even if a scenario fires (clamp or skip).",
+    "quiet_hours": { "start": "21:00", "end": "08:00" },
+    "_frequency_caps": "Global guardrails so no player is over-messaged regardless of how many scenarios match. Cap is 2/day because a non-submitter can get the 9am prompt AND the 6pm nudge on the same prompt day.",
+    "max_pings_per_day": 2,
+    "min_hours_between_pings": 5,
+    "message_constraints": {
+      "max_chars": 320,
+      "format": "plain_text",
+      "emoji": "sparingly",
+      "always_include_link": true,
+      "no_markdown": true
+    }
+  },
+
+  "_player_facts": "The fields the pipeline computes per player before evaluating scenarios. Segment `match` expressions and LLM message construction may only reference these. Keeping this list explicit is what makes the framework scalable — new conditions reuse these facts rather than inventing new plumbing.",
+  "player_facts": {
+    "name": "Player's first name (from registration profile).",
+    "is_new": "true if the player has zero finalized entries ever.",
+    "streak": "Current consecutive-day streak (integer).",
+    "entries_total": "Lifetime count of finalized entries.",
+    "words_total": "Lifetime word count across finalized entries.",
+    "days_since_last_entry": "Whole days since their most recent finalized entry (null if none).",
+    "last_entry_date": "Local date (YYYY-MM-DD) of most recent finalized entry, or null.",
+    "todays_prompt_id": "ID of today's prompt, or null if no prompt scheduled today.",
+    "started_today": "true if a draft exists for today's prompt but is not finalized.",
+    "submitted_today": "true if today's prompt entry is finalized.",
+    "missed_recent": "true if there was a prompt in the last few days the player never submitted.",
+    "last_ping_scenario": "ID of the most recent scenario that messaged this player.",
+    "last_ping_date": "Local date of the most recent ping (for frequency caps)."
+  },
+
+  "_scenarios": "Each scenario has a schedule (when the pipeline evaluates it), an optional precondition (a cheap gate that can skip the whole scenario), and an ordered list of segments. Segments are evaluated top-to-bottom; the FIRST whose `match` is true is the one used for that player. A segment with match \"true\" acts as a catch-all. `intent` and `tone` are the guidance handed to the LLM; `must_include` lists facts/content the message must contain.",
+  "scenarios": [
+    {
+      "id": "morning-prompt",
+      "enabled": true,
+      "description": "Daily send when a new prompt is live. Everyone registered gets the prompt; flavor depends on their recent activity.",
+      "schedule": { "time": "09:00", "on_days": "prompt_days" },
+      "precondition": "todays_prompt_id != null",
+      "audience": "all_registered",
+      "must_include": ["todays_prompt_body", "site_link"],
+      "segments": [
+        {
+          "id": "new-player",
+          "match": "is_new == true",
+          "intent": "Warmly welcome a first-timer and invite them into today's prompt with zero pressure.",
+          "tone": "friendly, encouraging, simple"
+        },
+        {
+          "id": "on-streak",
+          "match": "streak >= 2",
+          "intent": "Celebrate their streak by name and urge them to keep it alive with today's prompt.",
+          "tone": "upbeat, proud, momentum-building"
+        },
+        {
+          "id": "returning-after-miss",
+          "match": "missed_recent == true",
+          "intent": "Gently welcome them back after missed days — no guilt — and frame today as a fresh start.",
+          "tone": "warm, low-pressure, inviting"
+        },
+        {
+          "id": "active-regular",
+          "match": "true",
+          "intent": "Deliver today's prompt with a cheerful nudge to write.",
+          "tone": "cheerful, casual"
+        }
+      ]
+    },
+
+    {
+      "id": "evening-nudge",
+      "enabled": true,
+      "description": "Same-day reminder on prompt days for players who haven't finished. Suppressed entirely for anyone who already submitted.",
+      "schedule": { "time": "18:00", "on_days": "prompt_days" },
+      "precondition": "todays_prompt_id != null",
+      "audience": "registered_not_submitted_today",
+      "must_include": ["site_link"],
+      "segments": [
+        {
+          "id": "started-not-finished",
+          "match": "started_today == true",
+          "intent": "Remind them they have a draft going and just need to finish and post it before the day ends.",
+          "tone": "supportive, you're-almost-there"
+        },
+        {
+          "id": "not-started",
+          "match": "true",
+          "intent": "Light nudge that there's still time today to jump on the prompt before it closes.",
+          "tone": "casual, motivating, no guilt"
+        }
+      ]
+    },
+
+    {
+      "id": "checkin-summary",
+      "enabled": true,
+      "description": "Periodic relationship-builder on a quiet (no-prompt) day. Reflects on how the player is doing overall and nudges or congratulates accordingly. Cadence-gated so each player hears from it at most once per window.",
+      "schedule": {
+        "time": "10:00",
+        "on_days": "non_prompt_days",
+        "_cadence": "Pipeline only includes a player if it's been at least min_days since their last checkin-summary, and randomizes within the window so all players don't get it the same day.",
+        "cadence": { "min_days_since_scenario": 7, "max_days_since_scenario": 10 }
+      },
+      "precondition": "todays_prompt_id == null",
+      "audience": "all_registered",
+      "must_include": ["site_link"],
+      "segments": [
+        {
+          "id": "thriving",
+          "match": "streak >= 3 || entries_total >= 5",
+          "intent": "Congratulate them on real progress, cite a concrete number (entries or words), and keep them feeling great about the habit.",
+          "tone": "celebratory, proud, specific"
+        },
+        {
+          "id": "steady",
+          "match": "entries_total >= 1 && days_since_last_entry <= 7",
+          "intent": "Acknowledge they're keeping up, give a small high-five, and look ahead to the next prompt.",
+          "tone": "warm, affirming"
+        },
+        {
+          "id": "slipping",
+          "match": "entries_total >= 1 && days_since_last_entry > 7",
+          "intent": "Friendly check-in for someone who's drifted — remind them their collection is waiting and the next prompt is a chance to jump back in.",
+          "tone": "caring, gently motivating, no guilt"
+        },
+        {
+          "id": "never-started",
+          "match": "is_new == true",
+          "intent": "Re-introduce the experience to someone who signed up but never wrote, and make the first entry feel easy and fun.",
+          "tone": "inviting, low-pressure, fresh-start"
+        },
+        {
+          "id": "fallback",
+          "match": "true",
+          "intent": "General friendly hello and encouragement to keep going.",
+          "tone": "warm, casual"
+        }
+      ]
+    }
+  ]
+}
