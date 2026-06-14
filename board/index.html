@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board — Summer Pages</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple-800:#2A2380; --purple-700:#3C3489; --purple-600:#4F46B8;
+      --purple-500:#6B5FE4; --purple-300:#B8B2F6; --purple-100:#EEEDFE; --purple-50:#F5F4FF;
+      --pink-500:#E85B8C; --yellow-400:#FAC775; --green-500:#1D9E75;
+      --ink:#1a1a2e; --ink-light:#5F5E5A; --ink-muted:#9997B0; --border:#E0DEFA;
+      --font-body:'Nunito',system-ui,sans-serif; --font-display:'Fredoka',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font-body); font-size:15px; color:var(--ink); background:var(--purple-50);}
+
+    header{
+      background:var(--purple-700); padding:16px 28px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo{display:flex; align-items:center; gap:11px;}
+    .logo-mark{width:38px; height:38px; border-radius:11px; background:var(--yellow-400);
+      display:flex; align-items:center; justify-content:center;}
+    .logo-mark img{width:72%; height:72%; object-fit:contain;}
+    .title{font-family:var(--font-display); font-size:20px; font-weight:600; color:#fff;}
+    .title small{display:block; font-family:var(--font-body); font-size:12px; color:var(--purple-300); font-weight:600;}
+    .gen{font-size:12px; color:var(--purple-300);}
+
+    .container{max-width:1100px; margin:0 auto; padding:24px 28px 60px;}
+
+    .stats{display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap;}
+    .stat{
+      flex:1; min-width:150px; background:#fff; border:1.5px solid var(--border);
+      border-radius:16px; padding:18px 20px;
+    }
+    .stat-num{font-family:var(--font-display); font-size:32px; font-weight:600; color:var(--purple-700); line-height:1;}
+    .stat-label{font-size:13px; font-weight:700; color:var(--ink-muted); margin-top:6px;}
+
+    table{width:100%; border-collapse:collapse; background:#fff; border-radius:16px; overflow:hidden;
+      box-shadow:0 2px 12px rgba(26,26,46,.06); border:1.5px solid var(--border);}
+    thead th{
+      text-align:left; font-size:12px; font-weight:800; color:var(--ink-muted);
+      text-transform:uppercase; letter-spacing:.05em; padding:13px 16px;
+      border-bottom:1.5px solid var(--border); background:var(--purple-50);
+    }
+    tbody td{padding:13px 16px; border-bottom:1px solid var(--border); font-size:14px;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover{background:var(--purple-50);}
+    .name{font-weight:700; color:var(--ink);}
+    .mobile{color:var(--ink-muted); font-size:13px;}
+    .num{font-family:var(--font-display); font-weight:600;}
+    .streak{color:#854F0B;}
+    .pill{display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:700;}
+    .pill-yes{background:#E1F5EE; color:#064535;}
+    .pill-no{background:#F1EFE8; color:#8a8780;}
+    .draft{font-size:12px; color:var(--purple-500); font-weight:700;}
+    .muted{color:var(--ink-muted);}
+
+    .state{padding:60px 20px; text-align:center; color:var(--ink-muted); font-size:16px;}
+
+    .mobile-warn{display:none;}
+    @media (max-width:760px){
+      .container,header{display:none;}
+      .mobile-warn{
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        min-height:100vh; text-align:center; padding:40px; gap:12px;
+        background:linear-gradient(160deg,var(--purple-800),var(--purple-600)); color:#fff;
+      }
+      .mobile-warn .emoji{font-size:40px;}
+      .mobile-warn h2{font-family:var(--font-display); font-weight:600;}
+      .mobile-warn p{color:var(--purple-300); max-width:300px;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-warn">
+    <div class="emoji">🖥️</div>
+    <h2>Open the board on a desktop</h2>
+    <p>The player board is built for a big screen — switch to a laptop or desktop to view it.</p>
+  </div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark"><img src="/icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+      <div class="title">Player Board<small>Summer Pages · admin</small></div>
+    </div>
+    <div class="gen" id="generated"></div>
+  </header>
+
+  <div class="container">
+    <div class="stats" id="stats"></div>
+    <div id="table-wrap">
+      <div class="state" id="state">Loading players…</div>
+    </div>
+  </div>
+
+  <script>
+    // Admin board — fetches the public rollup endpoint. Hardcoded to prod;
+    // this page is hosted on july-journal.com (CORS-allowed origin).
+    const API = 'https://api.badjupiter.cloud';
+
+    function fmtDate(iso){
+      if(!iso) return '—';
+      const [y,m,d] = iso.split('T')[0].split('-').map(Number);
+      return new Date(y, m-1, d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    }
+    function fmtPing(iso){
+      if(!iso) return '—';
+      return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    }
+
+    async function load(){
+      try {
+        const res = await fetch(API + '/journal/board/');
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        render(data);
+      } catch (err) {
+        document.getElementById('state').textContent = 'Could not load the board: ' + err.message;
+      }
+    }
+
+    function render(data){
+      document.getElementById('generated').textContent =
+        'as of ' + fmtPing(data.generated_at);
+
+      const t = data.totals;
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="stat-num">${t.players}</div><div class="stat-label">players</div></div>
+        <div class="stat"><div class="stat-num">${t.entries}</div><div class="stat-label">total entries</div></div>
+        <div class="stat"><div class="stat-num">${t.active_today}</div><div class="stat-label">wrote today</div></div>
+      `;
+
+      if(!data.players.length){
+        document.getElementById('table-wrap').innerHTML =
+          '<div class="state">No players registered yet.</div>';
+        return;
+      }
+
+      const rows = data.players.map(p => `
+        <tr>
+          <td><span class="name">${p.name}</span></td>
+          <td class="mobile">${p.mobile}</td>
+          <td class="num">${p.entries}${p.drafts ? ` <span class="draft">+${p.drafts} draft</span>` : ''}</td>
+          <td class="num streak">${p.streak > 0 ? '🔥 ' + p.streak : '<span class="muted">—</span>'}</td>
+          <td>${fmtDate(p.last_entry_date)}</td>
+          <td><span class="pill ${p.submitted_today ? 'pill-yes':'pill-no'}">${p.submitted_today ? 'Yes':'No'}</span></td>
+          <td class="muted">${fmtPing(p.last_ping_at)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('table-wrap').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>Player</th><th>Mobile</th><th>Entries</th><th>Streak</th>
+            <th>Last entry</th><th>Wrote today</th><th>Last ping</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    load();
+  </script>
+
+</body>
+</html>

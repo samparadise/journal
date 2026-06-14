@@ -237,6 +237,18 @@ html, body {
 }
 .mobile-cta-sub { font-size: 16px; color: var(--purple-300); line-height: 1.6; }
 
+.mobile-about-link {
+  display: inline-block;
+  margin-top: 28px;
+  color: var(--purple-300);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1.5px solid rgba(255,255,255,0.25);
+  padding-bottom: 2px;
+}
+.mobile-about-link:hover { color: #fff; }
+
 /* ============================================================
    AUTH SCREENS
    ============================================================ */
@@ -368,6 +380,17 @@ html, body {
   transition: color 0.12s;
 }
 .auth-back:hover { color: var(--purple-500); }
+
+.auth-about-link {
+  display: block;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--purple-500);
+  text-decoration: none;
+}
+.auth-about-link:hover { text-decoration: underline; }
 
 /* ============================================================
    APP LAYOUT  (desktop grid)

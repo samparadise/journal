@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Summer Pages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple-800:#2A2380; --purple-700:#3C3489; --purple-600:#4F46B8;
+      --purple-500:#6B5FE4; --purple-300:#B8B2F6; --purple-100:#EEEDFE;
+      --pink-500:#E85B8C; --yellow-400:#FAC775; --ink:#1a1a2e; --ink-muted:#6E6C84;
+      --font-body:'Nunito',system-ui,sans-serif; --font-display:'Fredoka',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:var(--font-body); font-size:18px; color:var(--ink);
+      background:linear-gradient(160deg,var(--purple-800),var(--purple-600));
+      min-height:100vh; line-height:1.65;
+    }
+    .wrap{max-width:720px; margin:0 auto; padding:48px 22px 64px;}
+    .logo{display:flex; align-items:center; gap:14px; margin-bottom:36px;}
+    .logo-mark{
+      width:56px; height:56px; border-radius:14px; background:var(--yellow-400);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      box-shadow:0 2px 10px rgba(0,0,0,.18);
+    }
+    .logo-mark img{width:72%; height:72%; object-fit:contain;}
+    .app-name{font-family:var(--font-display); font-size:30px; font-weight:600; color:#fff;}
+    .tagline{font-size:15px; color:var(--purple-300); margin-top:2px;}
+    .card{
+      background:#fff; border-radius:22px; padding:40px;
+      box-shadow:0 24px 60px rgba(26,26,46,.30);
+    }
+    h1{font-family:var(--font-display); font-size:30px; font-weight:600; color:var(--purple-800); margin-bottom:14px;}
+    h2{font-family:var(--font-display); font-size:21px; font-weight:600; color:var(--purple-700); margin:28px 0 10px;}
+    p{margin-bottom:14px; color:var(--ink);}
+    .muted{color:var(--ink-muted); font-size:16px;}
+    .steps{list-style:none; margin:8px 0 4px;}
+    .steps li{display:flex; gap:12px; align-items:flex-start; margin-bottom:12px;}
+    .step-num{
+      flex-shrink:0; width:28px; height:28px; border-radius:50%;
+      background:var(--purple-100); color:var(--purple-600);
+      font-family:var(--font-display); font-weight:600; font-size:15px;
+      display:flex; align-items:center; justify-content:center; margin-top:1px;
+    }
+    .cta{
+      display:inline-block; margin-top:24px; padding:13px 26px;
+      background:var(--purple-500); color:#fff; text-decoration:none;
+      border-radius:12px; font-family:var(--font-display); font-weight:600; font-size:17px;
+      box-shadow:0 4px 14px rgba(107,95,228,.35); transition:background .15s;
+    }
+    .cta:hover{background:var(--purple-700);}
+    footer{text-align:center; color:var(--purple-300); font-size:14px; margin-top:30px;}
+    footer a{color:#fff;}
+    @media (max-width:600px){
+      .card{padding:28px 22px;} h1{font-size:25px;} body{font-size:17px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="logo">
+      <div class="logo-mark"><img src="/icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+      <div>
+        <div class="app-name">Summer Pages</div>
+        <div class="tagline">Your summer, in your own words</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1>What is Summer Pages? ☀️</h1>
+      <p>Summer Pages is a friendly summer writing adventure. Every so often
+         a new prompt arrives by text — a question, an idea, a little spark —
+         and you write whatever it brings to mind.</p>
+      <p class="muted">No grades, no pressure. Just a few minutes to make
+         something that's yours, and a growing collection to look back on.</p>
+
+      <h2>How it works</h2>
+      <ul class="steps">
+        <li><span class="step-num">1</span><span>You get a text in the morning with the day's prompt and a link.</span></li>
+        <li><span class="step-num">2</span><span>Open it on your laptop and write — add photos, pick a mood, take your time. It saves as you go.</span></li>
+        <li><span class="step-num">3</span><span>Hit <strong>Post</strong> when you're happy with it, and it joins your collection.</span></li>
+        <li><span class="step-num">4</span><span>Keep a streak going and watch your trophy case fill up over the summer.</span></li>
+      </ul>
+
+      <h2>Who's it for?</h2>
+      <p>Kids, families, and anyone who likes the idea of a low-key creative
+         habit over the summer. It started as a project for two sisters and
+         grew from there.</p>
+
+      <a class="cta" href="/">Go to Summer Pages →</a>
+    </div>
+
+    <footer>
+      Made with ☀️ &nbsp;·&nbsp; <a href="/">july-journal.com</a>
+    </footer>
+
+  </div>
+</body>
+</html>
