@@ -48,18 +48,29 @@
       text-transform:uppercase; letter-spacing:.05em; padding:13px 16px;
       border-bottom:1.5px solid var(--border); background:var(--purple-50);
     }
-    tbody td{padding:13px 16px; border-bottom:1px solid var(--border); font-size:14px;}
-    tbody tr:last-child td{border-bottom:none;}
-    tbody tr:hover{background:var(--purple-50);}
+    tbody td{padding:13px 16px; border-bottom:1px solid var(--border); font-size:14px; vertical-align:middle;}
+    tbody tr.player-row{cursor:pointer;}
+    tbody tr.player-row:hover{background:var(--purple-50);}
     .name{font-weight:700; color:var(--ink);}
-    .mobile{color:var(--ink-muted); font-size:13px;}
+    .mobile{color:var(--ink-muted); font-size:12px; margin-top:2px;}
     .num{font-family:var(--font-display); font-weight:600;}
-    .streak{color:#854F0B;}
-    .pill{display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:700;}
-    .pill-yes{background:#E1F5EE; color:#064535;}
-    .pill-no{background:#F1EFE8; color:#8a8780;}
-    .draft{font-size:12px; color:var(--purple-500); font-weight:700;}
+    .streak{color:#854F0B; margin-left:8px;}
+    .sub{display:block; font-size:12px; color:var(--ink-muted); font-weight:400; margin-top:2px;}
+    .draft{font-size:12px; color:var(--purple-500); font-weight:700; margin-left:6px;}
     .muted{color:var(--ink-muted);}
+    .caret{color:var(--purple-400); transition:transform .15s; display:inline-block;}
+    tr.player-row.open .caret{transform:rotate(90deg);}
+
+    /* expanded synopsis row */
+    tr.detail-row > td{padding:0; border-bottom:1px solid var(--border); background:var(--purple-50);}
+    .detail-inner{padding:18px 22px; max-width:760px;}
+    .detail-head{font-family:var(--font-display); font-size:14px; font-weight:600; color:var(--purple-700);
+      text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+    .synopsis{font-size:15px; line-height:1.65; color:var(--ink); white-space:pre-wrap;}
+    .synopsis.loading,.synopsis.error{color:var(--ink-muted); font-style:italic;}
+    .spinner{width:14px; height:14px; border:2px solid var(--purple-300); border-top-color:var(--purple-500);
+      border-radius:50%; display:inline-block; animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
 
     .state{padding:60px 20px; text-align:center; color:var(--ink-muted); font-size:16px;}
 
@@ -101,9 +112,21 @@
   </div>
 
   <script>
-    // Admin board — fetches the public rollup endpoint. Hardcoded to prod;
-    // this page is hosted on july-journal.com (CORS-allowed origin).
-    const API = 'https://api.badjupiter.cloud';
+    // Admin board — fetches the public rollup endpoint. Defaults to prod,
+    // but honors local.json's apiserver override (same mechanism j2auth
+    // uses) so local dev talks to a local server. local.json is gitignored,
+    // so in production this fetch 404s and we stay on prod.
+    let API = 'https://api.badjupiter.cloud';
+
+    async function resolveApi(){
+      try {
+        const r = await fetch('/local.json', {cache: 'no-store'});
+        if(r.ok){
+          const cfg = await r.json();
+          if(cfg.apiserver) API = cfg.apiserver;
+        }
+      } catch (_) { /* no local.json → prod */ }
+    }
 
     function fmtDate(iso){
       if(!iso) return '—';
@@ -126,6 +149,9 @@
       }
     }
 
+    const esc = s => (s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    const synopsisCache = {};  // uuid -> text, so re-opening doesn't refetch
+
     function render(data){
       document.getElementById('generated').textContent =
         'as of ' + fmtPing(data.generated_at);
@@ -134,7 +160,7 @@
       document.getElementById('stats').innerHTML = `
         <div class="stat"><div class="stat-num">${t.players}</div><div class="stat-label">players</div></div>
         <div class="stat"><div class="stat-num">${t.entries}</div><div class="stat-label">total entries</div></div>
-        <div class="stat"><div class="stat-num">${t.active_today}</div><div class="stat-label">wrote today</div></div>
+        <div class="stat"><div class="stat-num">${(t.words || 0).toLocaleString()}</div><div class="stat-label">total words</div></div>
       `;
 
       if(!data.players.length){
@@ -144,29 +170,90 @@
       }
 
       const rows = data.players.map(p => `
-        <tr>
-          <td><span class="name">${p.name}</span></td>
-          <td class="mobile">${p.mobile}</td>
-          <td class="num">${p.entries}${p.drafts ? ` <span class="draft">+${p.drafts} draft</span>` : ''}</td>
-          <td class="num streak">${p.streak > 0 ? '🔥 ' + p.streak : '<span class="muted">—</span>'}</td>
+        <tr class="player-row" data-uuid="${p.uuid}">
+          <td>
+            <span class="name">${esc(p.name)}</span>
+            <div class="mobile">${p.mobile}</div>
+          </td>
+          <td>
+            <span class="num">${p.entries}</span> ${p.entries === 1 ? 'entry' : 'entries'}
+            ${p.streak > 0 ? `<span class="num streak">🔥 ${p.streak}</span>` : ''}
+            ${p.drafts ? `<span class="draft">+${p.drafts} draft</span>` : ''}
+          </td>
+          <td>
+            <span class="num">${(p.words || 0).toLocaleString()}</span>
+            <span class="sub">${p.entries ? '~' + (p.avg_words || 0) + '/post' : ''}</span>
+          </td>
           <td>${fmtDate(p.last_entry_date)}</td>
-          <td><span class="pill ${p.submitted_today ? 'pill-yes':'pill-no'}">${p.submitted_today ? 'Yes':'No'}</span></td>
           <td class="muted">${fmtPing(p.last_ping_at)}</td>
+          <td><span class="caret">▶</span></td>
+        </tr>
+        <tr class="detail-row" data-detail="${p.uuid}" style="display:none">
+          <td colspan="6">
+            <div class="detail-inner">
+              <div class="detail-head">📋 Activity synopsis</div>
+              <div class="synopsis" id="syn-${p.uuid}"></div>
+            </div>
+          </td>
         </tr>
       `).join('');
 
       document.getElementById('table-wrap').innerHTML = `
         <table>
           <thead><tr>
-            <th>Player</th><th>Mobile</th><th>Entries</th><th>Streak</th>
-            <th>Last entry</th><th>Wrote today</th><th>Last ping</th>
+            <th>Player</th><th>Activity</th><th>Words</th>
+            <th>Last entry</th><th>Last ping</th><th></th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       `;
+
+      document.querySelectorAll('.player-row').forEach(row => {
+        row.addEventListener('click', () => toggleRow(row));
+      });
     }
 
-    load();
+    function toggleRow(row){
+      const uuid = row.dataset.uuid;
+      const detail = document.querySelector(`tr[data-detail="${uuid}"]`);
+      const open = detail.style.display !== 'none';
+      if(open){
+        detail.style.display = 'none';
+        row.classList.remove('open');
+        return;
+      }
+      detail.style.display = '';
+      row.classList.add('open');
+      loadSynopsis(uuid);
+    }
+
+    async function loadSynopsis(uuid){
+      const el = document.getElementById('syn-' + uuid);
+      if(synopsisCache[uuid]){ el.className = 'synopsis'; el.textContent = synopsisCache[uuid]; return; }
+      if(el.dataset.loading) return;
+      el.dataset.loading = '1';
+      el.className = 'synopsis loading';
+      el.innerHTML = '<span class="spinner"></span> Reading entries and summarizing…';
+      try {
+        const res = await fetch(API + '/journal/board/synopsis/', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ uuid })
+        });
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        synopsisCache[uuid] = data.synopsis;
+        el.className = 'synopsis';
+        el.textContent = data.synopsis;
+      } catch (err) {
+        el.className = 'synopsis error';
+        el.textContent = 'Could not generate a synopsis: ' + err.message;
+      } finally {
+        delete el.dataset.loading;
+      }
+    }
+
+    (async () => { await resolveApi(); load(); })();
   </script>
 
 </body>
