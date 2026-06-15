@@ -17,7 +17,9 @@
       "format": "plain_text",
       "emoji": "sparingly",
       "always_include_link": true,
-      "no_markdown": true
+      "no_markdown": true,
+      "_link_placement": "A trailing URL gets pulled into a detached preview card in iMessage. Embed the link mid-message with words after it so the text stays intact.",
+      "link_placement": "embed_mid_message"
     }
   },
 
@@ -103,12 +105,18 @@
     {
       "id": "checkin-summary",
       "enabled": true,
-      "description": "Periodic relationship-builder on a quiet (no-prompt) day. Reflects on how the player is doing overall and nudges or congratulates accordingly. Cadence-gated so each player hears from it at most once per window.",
+      "description": "Periodic relationship-builder on a quiet (no-prompt) day. Reflects on how the player is doing overall and nudges or congratulates accordingly. Cadence-gated so each player hears from it at most once per window, and only after they've been playing a while.",
+      "_context_note": "context is injected verbatim into the LLM prompt to keep it from inventing a prompt that doesn't exist today.",
+      "context": "IMPORTANT: There is NO writing prompt today — this is a periodic check-in, not a prompt delivery. Never say or imply that a new prompt is ready or waiting. The next prompt will arrive on a future day. Base the message on how they've been doing (their streak, entries, words). Encourage them to keep it up, or gently to get back to it if they've been quiet, and remind them they can check their streak and collection any time on their phone.",
       "schedule": {
         "time": "10:00",
         "on_days": "non_prompt_days",
-        "_cadence": "Pipeline only includes a player if it's been at least min_days since their last checkin-summary, and randomizes within the window so all players don't get it the same day.",
-        "cadence": { "min_days_since_scenario": 7, "max_days_since_scenario": 10 }
+        "_cadence": "min_days_active_before_first: a player must have been writing this many days before their FIRST check-in ever. min/max_days_since_scenario: spacing between check-ins, randomized within the window so they don't all land the same day.",
+        "cadence": {
+          "min_days_active_before_first": 7,
+          "min_days_since_scenario": 7,
+          "max_days_since_scenario": 10
+        }
       },
       "precondition": "todays_prompt_id == null",
       "audience": "all_registered",
@@ -117,25 +125,25 @@
         {
           "id": "thriving",
           "match": "streak >= 3 || entries_total >= 5",
-          "intent": "Congratulate them on real progress, cite a concrete number (entries or words), and keep them feeling great about the habit.",
+          "intent": "Congratulate them on real progress, citing a concrete number (entries or words). Keep them feeling great about the habit and point them to their stats on their phone.",
           "tone": "celebratory, proud, specific"
         },
         {
           "id": "steady",
           "match": "entries_total >= 1 && days_since_last_entry <= 7",
-          "intent": "Acknowledge they're keeping up, give a small high-five, and look ahead to the next prompt.",
+          "intent": "Give a warm high-five for keeping up. Encourage them to keep the momentum and mention they can check their streak and collection on their phone.",
           "tone": "warm, affirming"
         },
         {
           "id": "slipping",
           "match": "entries_total >= 1 && days_since_last_entry > 7",
-          "intent": "Friendly check-in for someone who's drifted — remind them their collection is waiting and the next prompt is a chance to jump back in.",
+          "intent": "Gently encourage someone who's drifted to get back into it — no guilt. Remind them their collection is waiting on their phone and there's more to come.",
           "tone": "caring, gently motivating, no guilt"
         },
         {
           "id": "never-started",
           "match": "is_new == true",
-          "intent": "Re-introduce the experience to someone who signed up but never wrote, and make the first entry feel easy and fun.",
+          "intent": "Re-introduce the experience to someone who signed up but never wrote, and make starting feel easy and fun.",
           "tone": "inviting, low-pressure, fresh-start"
         },
         {
