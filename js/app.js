@@ -523,7 +523,7 @@ async function doAutosave() {
 
 function renderStreakHeader() {
   const streak = computeStreak(state.entries)
-  if (streak > 0) {
+  if (streak >= 2) {   // a single day isn't a streak
     $('header-streak-count').textContent = `${streak}-day streak`
     show($('header-streak'))
   } else {
@@ -735,7 +735,8 @@ function renderMobile() {
     (sum, e) => sum + wordCount(mdToText(e.entry_md)), 0
   )
   $('stat-entries').textContent = doneEntries.length
-  $('stat-streak').textContent  = computeStreak(entries)
+  const mStreak = computeStreak(entries)
+  $('stat-streak').textContent  = mStreak >= 2 ? mStreak : 0   // a single day isn't a streak
   $('stat-words').textContent   = totalWords >= 1000
     ? (totalWords / 1000).toFixed(1) + 'k'
     : totalWords
