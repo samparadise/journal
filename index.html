@@ -93,8 +93,18 @@
       <div class="auth-subheading">Enter your phone number and we'll text you a code.</div>
       <form id="phone-form" novalidate>
         <label class="auth-label" for="phone-input">Phone number</label>
-        <input id="phone-input" class="auth-input" type="tel"
-               placeholder="(555) 000-0000" autocomplete="tel" required>
+        <div class="phone-field">
+          <span class="country-pick">
+            <select id="country-select" class="country-flag" aria-label="Country">
+              <option value="US">🇺🇸</option>
+              <option value="GB">🇬🇧</option>
+            </select>
+            <span class="country-caret" aria-hidden="true">▾</span>
+          </span>
+          <span class="dial-prefix" id="dial-prefix" aria-hidden="true">+1</span>
+          <input id="phone-input" class="phone-input" type="tel"
+                 placeholder="(555) 000-0000" autocomplete="tel" required>
+        </div>
 
         <!-- New-user expansion: shown when the mobile isn't a known user -->
         <div id="newuser-fields" class="newuser-fields hidden">

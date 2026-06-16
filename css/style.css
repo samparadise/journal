@@ -322,6 +322,59 @@ html, body {
   box-shadow: 0 0 0 4px var(--purple-100);
 }
 
+/* Phone field: subtle flag picker + faint dial code + number, as one box */
+.phone-field {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.phone-field:focus-within {
+  border-color: var(--purple-500);
+  box-shadow: 0 0 0 4px var(--purple-100);
+}
+
+.country-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding-left: 12px;
+}
+.country-flag {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+}
+.country-caret { color: var(--ink-muted); font-size: 10px; pointer-events: none; }
+
+.dial-prefix {
+  color: var(--ink-muted);
+  font-size: 16px;
+  padding: 0 4px 0 8px;
+  user-select: none;
+}
+
+.phone-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  padding: 13px 15px 13px 2px;
+  outline: none;
+}
+
 /* New-user expansion inside the sign-in card */
 .newuser-fields {
   margin: 6px 0 4px;

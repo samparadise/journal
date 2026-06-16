@@ -250,10 +250,8 @@ function applyPhotoUrls(urls) {
 // AUTH — j2auth wrappers  (real mode only)
 // ============================================================
 
-async function sendCode(rawPhone) {
-  const digits = rawPhone.replace(/\D/g, '')
-  const phone  = digits.startsWith('1') ? `+${digits}` : `+1${digits}`
-  const code   = await requestAuthenticationCode(phone, window.APP_CONFIG.j2BizId)
+async function sendCode(e164Phone) {
+  const code = await requestAuthenticationCode(e164Phone, window.APP_CONFIG.j2BizId)
   if (!code) throw new Error('Could not send code — check the number and try again.')
 }
 
@@ -267,13 +265,13 @@ async function verifyCode(userCode) {
 }
 
 // Check whether a mobile already belongs to a known user, and get any
-// profile vars stored for this biz. Uses serverURL from j2auth.js
-// (already localized via local.json by the time forms are usable).
-async function checkUser(rawPhone) {
+// profile vars stored for this biz. Takes an E.164 number; the server
+// normalizes it again, but sending E.164 avoids region-guess ambiguity.
+async function checkUser(e164Phone) {
   const res = await fetch(serverURL + '/usercheck/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mobile: rawPhone, bizid: window.APP_CONFIG.j2BizId })
+    body: JSON.stringify({ mobile: e164Phone, bizid: window.APP_CONFIG.j2BizId })
   })
   if (!res.ok) throw new Error('Could not check that number — try again.')
   return res.json()  // { exists, profile }
@@ -806,17 +804,58 @@ function showMainScreen() {
 // EVENT HANDLERS — Auth
 // ============================================================
 
-// Auto-format phone number as (###) ###-#### while typing
-function formatPhone(digits) {
-  if (!digits.length) return ''
-  if (digits.length <= 3) return `(${digits}`
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+// Supported countries for phone auth. Each knows how to display-format the
+// national number as the user types, validate it, and build the E.164 string.
+const PHONE_COUNTRIES = {
+  US: {
+    dial: '1',
+    maxDigits: 10,
+    placeholder: '(555) 000-0000',
+    format(d) {
+      d = d.slice(0, 10)
+      if (!d.length)     return ''
+      if (d.length <= 3) return `(${d}`
+      if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`
+      return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+    },
+    valid: d => d.length === 10,
+    e164:  d => '+1' + d,
+  },
+  GB: {
+    dial: '44',
+    maxDigits: 11,
+    placeholder: '07700 900123',
+    // UK mobile: 11 digits starting 0 (07xxx xxxxxx)
+    format(d) {
+      d = d.slice(0, 11)
+      return d.length <= 5 ? d : `${d.slice(0, 5)} ${d.slice(5)}`
+    },
+    // accept with or without the leading 0; must be a 07/7 mobile
+    valid(d) { const n = d.replace(/^0/, ''); return n.length === 10 && n[0] === '7' },
+    e164(d)  { return '+44' + d.replace(/^0/, '') },
+  },
 }
 
-$('phone-input').addEventListener('input', e => {
-  const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-  e.target.value = formatPhone(digits)
+function selectedCountry() {
+  return PHONE_COUNTRIES[$('country-select').value] || PHONE_COUNTRIES.US
+}
+
+function reformatPhone() {
+  const c = selectedCountry()
+  const digits = $('phone-input').value.replace(/\D/g, '').slice(0, c.maxDigits)
+  $('phone-input').value = c.format(digits)
+}
+
+$('country-select').addEventListener('change', () => {
+  const c = selectedCountry()
+  $('dial-prefix').textContent = '+' + c.dial
+  $('phone-input').placeholder = c.placeholder
+  reformatPhone()
+  $('phone-input').focus()
+})
+
+$('phone-input').addEventListener('input', () => {
+  reformatPhone()
   // Number changed — any new-user expansion no longer applies
   hide($('newuser-fields'))
   state.pendingProfile = null
@@ -825,12 +864,13 @@ $('phone-input').addEventListener('input', e => {
 
 $('phone-form').addEventListener('submit', async e => {
   e.preventDefault()
-  const phone  = $('phone-input').value.trim()
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length < 10) {
-    $('phone-error').textContent = 'Please enter a full 10-digit phone number.'
+  const c      = selectedCountry()
+  const digits = $('phone-input').value.replace(/\D/g, '')
+  if (!c.valid(digits)) {
+    $('phone-error').textContent = 'Please enter a full phone number.'
     return
   }
+  const phone = c.e164(digits)   // E.164 — used for both /usercheck and send
 
   const btn = $('send-otp-btn')
   $('phone-error').textContent = ''
