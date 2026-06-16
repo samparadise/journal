@@ -62,7 +62,11 @@
     .trend.up{color:var(--green-500);}
     .trend.down{color:#C2620E;}
     .trend.flat{color:var(--ink-muted); font-weight:400;}
-    .draft{font-size:12px; color:var(--purple-500); font-weight:700; margin-left:6px;}
+    .draft-pill{
+      display:inline-block; margin-left:8px; vertical-align:middle;
+      background:#FAEEDA; color:#854F0B;
+      font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px;
+    }
     .muted{color:var(--ink-muted);}
     .toggle-label{
       color:var(--purple-500); font-weight:700; font-size:13px; white-space:nowrap;
@@ -190,13 +194,13 @@
         <tr class="player-row" data-uuid="${p.uuid}">
           <td>
             <span class="name">${esc(p.name)}</span>
+            ${p.drafting ? '<span class="draft-pill">✏️ writing</span>' : ''}
             <div class="mobile">${p.mobile}</div>
           </td>
           <td>
             <span class="lead">${p.streak >= 2 ? '🔥' : ''}</span>${p.streak >= 2
               ? `<span class="num streak">${p.streak}</span> <span class="muted">(${p.entries} total)</span>`
               : `<span class="num">${p.entries}</span> <span class="muted">total</span>`}
-            ${p.drafts ? `<span class="draft">+${p.drafts} draft</span>` : ''}
           </td>
           <td>
             <span class="lead">${trendArrow(p.trend)}</span><span class="num">${(p.words || 0).toLocaleString()}</span>
