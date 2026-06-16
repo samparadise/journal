@@ -848,10 +848,13 @@ const PHONE_COUNTRIES = {
     dial: '44',
     maxDigits: 11,
     placeholder: '07700 900123',
-    // UK mobile: 11 digits starting 0 (07xxx xxxxxx)
+    // UK mobile: 07xxx xxxxxx with the leading 0, or 7xxx xxxxxx without it.
+    // Break after 5 digits when the 0 is present, after 4 when it's omitted,
+    // so the trailing 6-digit group lines up either way.
     format(d) {
       d = d.slice(0, 11)
-      return d.length <= 5 ? d : `${d.slice(0, 5)} ${d.slice(5)}`
+      const split = d[0] === '0' ? 5 : 4
+      return d.length <= split ? d : `${d.slice(0, split)} ${d.slice(split)}`
     },
     // accept with or without the leading 0; must be a 07/7 mobile
     valid(d) { const n = d.replace(/^0/, ''); return n.length === 10 && n[0] === '7' },
