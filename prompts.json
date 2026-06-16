@@ -26,5 +26,40 @@
     "body": "Describe a place you've never been but are sure you'd love.",
     "subtext": "What does it look, sound, and smell like in your imagination?",
     "icon": "plane"
+  },
+  {
+    "date": "2026-06-20",
+    "id": "20260620-talent",
+    "body": "What's something you're really good at that most people don't know about?",
+    "subtext": "Shhh! I won't tell anyone!",
+    "icon": "superhero"
+  },
+  {
+    "date": "2026-06-28",
+    "id": "20260628-creature",
+    "body": "Tell me a story about an imaginary creature that you saw at camp.",
+    "subtext": "What does it look like, where does it live, what does it eat?",
+    "icon": "creature"
+  },
+  {
+    "date": "2026-06-29",
+    "id": "20260629-happy",
+    "body": "Describe a tiny moment recently when you felt completely happy.",
+    "subtext": "The more ordinary, the better.",
+    "icon": "happy"
+  },
+  {
+    "date": "2026-07-01",
+    "id": "20260701-roadtrip",
+    "body": "Tell me six of the best things about a road trip.",
+    "subtext": "Think about the journey, not the destination...",
+    "icon": "roadtrip"
+  },
+  {
+    "date": "2026-07-04",
+    "id": "20260704-saturday",
+    "body": "Describe your perfect Saturday morning in ridiculous detail.",
+    "subtext": "What do you hear, smell, eat? Who's there?",
+    "icon": "morning"
   }
 ]
