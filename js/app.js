@@ -741,27 +741,49 @@ function renderMobile() {
     : totalWords
 
   // --- Trophy collection: one tile per completed prompt, oldest first ---
-  const earned = doneEntries
-    .map(e => state.prompts.find(p => p.id === e.prompt_id))
-    .filter(Boolean)
-    .sort((a, b) => (a.date < b.date ? -1 : 1))
+  // Position of each prompt in the full schedule, so we can detect gaps.
+  const order   = [...state.prompts].sort((a, b) => (a.date < b.date ? -1 : 1))
+  const idxById = {}
+  order.forEach((p, i) => { idxById[p.id] = i })
+
+  const done = doneEntries
+    .map(e => ({ entry: e, prompt: state.prompts.find(p => p.id === e.prompt_id) }))
+    .filter(x => x.prompt)
+    .sort((a, b) => (a.prompt.date < b.prompt.date ? -1 : 1))
+
+  // Build the cell list: completed tiles in order, with a single gap tile
+  // wherever there's a jump in the schedule (any number of missed prompts
+  // between two completed ones collapses to one gap marker).
+  const cells = []
+  done.forEach((item, i) => {
+    if (i > 0 && idxById[item.prompt.id] - idxById[done[i - 1].prompt.id] > 1) {
+      cells.push({ gap: true })
+    }
+    cells.push(item)
+  })
 
   const grid = $('mobile-trophy-grid')
 
-  if (!earned.length) {
+  if (!done.length) {
     grid.style.display = 'none'
     grid.innerHTML = ''
     $('mobile-empty').style.display = ''
   } else {
     grid.style.display = ''
     $('mobile-empty').style.display = 'none'
-    grid.innerHTML = earned.map(p => {
+    grid.innerHTML = cells.map(cell => {
+      if (cell.gap) {
+        return `<div class="mobile-trophy gap" aria-hidden="true"><span class="gap-dots">···</span></div>`
+      }
+      const p = cell.prompt
       const color = tileColorForPrompt(p)
       const inner = p.icon
         ? `<img src="icons/${p.icon}.svg" alt="" aria-hidden="true">`
         : `<span style="font-size:26px">✏️</span>`
       return `
-        <div class="mobile-trophy" style="background:${color}">
+        <div class="mobile-trophy" style="background:${color}"
+             data-id="${cell.entry.id}" role="button" tabindex="0"
+             aria-label="Open entry from ${formatDateShort(p.date)}">
           ${inner}
           <span class="mobile-trophy-label">${formatDateShort(p.date)}</span>
         </div>`
@@ -1183,6 +1205,18 @@ $('entries-list').addEventListener('keydown', e => {
     const entry = state.entries.find(en => en.id === parseInt(card.dataset.id, 10))
     if (entry) openModal(entry)
   }
+})
+
+// Mobile trophy tiles → open the entry modal (gap tiles have no data-id)
+function openTileEntry(target) {
+  const tile = target.closest('.mobile-trophy[data-id]')
+  if (!tile) return
+  const entry = state.entries.find(en => en.id === parseInt(tile.dataset.id, 10))
+  if (entry) openModal(entry)
+}
+$('mobile-trophy-grid').addEventListener('click', e => openTileEntry(e.target))
+$('mobile-trophy-grid').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTileEntry(e.target) }
 })
 
 function openModal(entry) {

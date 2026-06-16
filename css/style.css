@@ -205,6 +205,24 @@ html, body {
   opacity: 0.4;
 }
 
+/* tappable earned tiles */
+.mobile-trophy[data-id] { cursor: pointer; transition: transform 0.1s; outline: none; }
+.mobile-trophy[data-id]:active { transform: scale(0.94); }
+.mobile-trophy[data-id]:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.7); }
+
+/* single gap tile marking missed prompts between two completed ones */
+.mobile-trophy.gap {
+  background: rgba(255,255,255,0.05);
+  border: 1.5px dashed rgba(255,255,255,0.2);
+  box-shadow: none;
+}
+.mobile-trophy.gap .gap-dots {
+  color: var(--purple-300);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
 .mobile-trophy-empty-msg {
   width: 100%;
   max-width: 390px;
