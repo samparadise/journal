@@ -46,6 +46,7 @@
       "id": "morning-prompt",
       "enabled": true,
       "description": "Daily send when a new prompt is live. Everyone registered gets the prompt; flavor depends on their recent activity.",
+      "context": "Write the text in exactly three short parts, each on its own line separated by a blank line: (1) a brief personalized greeting using their first name; (2) the day's prompt reproduced WORD-FOR-WORD exactly as provided, wrapped in double quotes — do not reword, shorten, or change punctuation; (3) one short closing sentence pointing them to the link, phrased to fit their situation (see intent). Keep it warm and brief.",
       "schedule": { "time": "09:00", "on_days": "prompt_days" },
       "precondition": "todays_prompt_id != null",
       "audience": "all_registered",
@@ -54,25 +55,25 @@
         {
           "id": "new-player",
           "match": "is_new == true",
-          "intent": "Warmly welcome a first-timer and invite them into today's prompt with zero pressure.",
+          "intent": "First-timer. Greeting welcomes them warmly. Closing invites them to head to the link and get started for the very first time.",
           "tone": "friendly, encouraging, simple"
         },
         {
           "id": "on-streak",
           "match": "streak >= 2",
-          "intent": "Celebrate their streak by name and urge them to keep it alive with today's prompt.",
+          "intent": "On a streak. Greeting celebrates their streak by name. Closing urges them to head to the link and keep the streak going.",
           "tone": "upbeat, proud, momentum-building"
         },
         {
           "id": "returning-after-miss",
           "match": "missed_recent == true",
-          "intent": "Gently welcome them back after missed days — no guilt — and frame today as a fresh start.",
+          "intent": "Missed recent prompts. Greeting warmly welcomes them back, no guilt. Closing nudges them to head to the link and get back on the horse.",
           "tone": "warm, low-pressure, inviting"
         },
         {
           "id": "active-regular",
           "match": "true",
-          "intent": "Deliver today's prompt with a cheerful nudge to write.",
+          "intent": "Steady writer. Greeting is a cheerful hello. Closing cheerfully tells them to head to the link and get started.",
           "tone": "cheerful, casual"
         }
       ]
@@ -107,7 +108,8 @@
       "enabled": true,
       "description": "Periodic relationship-builder on a quiet (no-prompt) day. Reflects on how the player is doing overall and nudges or congratulates accordingly. Cadence-gated so each player hears from it at most once per window, and only after they've been playing a while.",
       "_context_note": "context is injected verbatim into the LLM prompt to keep it from inventing a prompt that doesn't exist today.",
-      "context": "IMPORTANT: There is NO writing prompt today — this is a periodic check-in, not a prompt delivery. Never say or imply that a new prompt is ready or waiting. The next prompt will arrive on a future day. Base the message on how they've been doing (their streak, entries, words). Encourage them to keep it up, or gently to get back to it if they've been quiet, and remind them they can check their streak and collection any time on their phone.",
+      "context": "IMPORTANT: There is NO writing prompt today — this is a periodic check-in, not a prompt delivery. Never say or imply that a new prompt is ready or waiting. The next prompt will arrive on a future day. Base the message on how they've been doing (their streak, entries, words). If their entries reveal a clear recurring theme or interest — a place, hobby, person, or food they keep writing about — call it out warmly and specifically to make the message feel personal (e.g. 'you sure do love Starbucks!'). If they have writings they started but never submitted, gently and kindly point that out — no scolding — and remind them that going forward they should remember to hit Post before the day ends so their work actually counts (do NOT tell them to go submit the old ones; those days have passed). Encourage them to keep it up, or gently to get back to it if they've been quiet, and remind them they can check their streak and collection any time on their phone.",
+      "include_entries": true,
       "schedule": {
         "time": "10:00",
         "on_days": "non_prompt_days",
