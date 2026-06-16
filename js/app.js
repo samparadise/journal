@@ -397,21 +397,23 @@ function localDate(d = new Date()) {
   return `${y}-${m}-${dd}`
 }
 
+// Streak = consecutive completed PROMPTS in the schedule, not calendar days.
+// Prompts aren't daily, so a non-prompt day (or a multi-day gap between
+// prompts) must NOT break the streak — only missing an actual past prompt does.
 function computeStreak(entries) {
-  if (!entries.length) return 0
-  const dates = [...new Set(entries.map(e => localDate(new Date(e.created_at))))].sort().reverse()
-  const todayStr     = localDate()
-  const yest         = new Date(); yest.setDate(yest.getDate() - 1)
-  const yesterdayStr = localDate(yest)
-  if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0
-  let streak = 0, cursor = dates[0]
-  for (const date of dates) {
-    if (date === cursor) {
-      streak++
-      const d = new Date(cursor + 'T00:00:00'); d.setDate(d.getDate() - 1)
-      cursor = localDate(d)
-    } else { break }
-  }
+  const today   = localDate()
+  const doneIds = new Set(entries.filter(e => e.final).map(e => e.prompt_id))
+  const past    = state.prompts
+    .filter(p => p.date <= today)
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
+  if (!past.length) return 0
+
+  let i = past.length - 1
+  // Today's prompt not done yet shouldn't break the streak mid-day — skip it.
+  if (past[i].date === today && !doneIds.has(past[i].id)) i--
+
+  let streak = 0
+  while (i >= 0 && doneIds.has(past[i].id)) { streak++; i-- }
   return streak
 }
 
