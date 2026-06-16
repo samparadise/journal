@@ -95,11 +95,13 @@
         <label class="auth-label" for="phone-input">Phone number</label>
         <div class="phone-field">
           <span class="country-pick">
-            <select id="country-select" class="country-flag" aria-label="Country">
+            <!-- UK temporarily disabled until the Summer Pages Twilio number +
+                 messaging service is set up. To restore: re-add the GB <option>,
+                 the .country-caret span, and remove the pointer-events style. -->
+            <select id="country-select" class="country-flag" aria-label="Country"
+                    style="pointer-events:none">
               <option value="US">🇺🇸</option>
-              <option value="GB">🇬🇧</option>
             </select>
-            <span class="country-caret" aria-hidden="true">▾</span>
           </span>
           <span class="dial-prefix" id="dial-prefix" aria-hidden="true">+1</span>
           <input id="phone-input" class="phone-input" type="tel"
