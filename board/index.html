@@ -58,8 +58,11 @@
     .sub{display:block; font-size:12px; color:var(--ink-muted); font-weight:400; margin-top:2px;}
     .draft{font-size:12px; color:var(--purple-500); font-weight:700; margin-left:6px;}
     .muted{color:var(--ink-muted);}
-    .caret{color:var(--purple-400); transition:transform .15s; display:inline-block;}
-    tr.player-row.open .caret{transform:rotate(90deg);}
+    .toggle-label{
+      color:var(--purple-500); font-weight:700; font-size:13px; white-space:nowrap;
+    }
+    tr.player-row:hover .toggle-label{text-decoration:underline;}
+    tr.player-row.open .toggle-label{color:var(--ink-muted);}
 
     /* expanded synopsis row */
     tr.detail-row > td{padding:0; border-bottom:1px solid var(--border); background:var(--purple-50);}
@@ -176,8 +179,9 @@
             <div class="mobile">${p.mobile}</div>
           </td>
           <td>
-            <span class="num">${p.entries}</span> ${p.entries === 1 ? 'entry' : 'entries'}
-            ${p.streak > 0 ? `<span class="num streak">🔥 ${p.streak}</span>` : ''}
+            ${p.streak > 0
+              ? `<span class="num streak">🔥 ${p.streak}</span> <span class="muted">(${p.entries} total)</span>`
+              : `<span class="num">${p.entries}</span> <span class="muted">total</span>`}
             ${p.drafts ? `<span class="draft">+${p.drafts} draft</span>` : ''}
           </td>
           <td>
@@ -186,7 +190,7 @@
           </td>
           <td>${fmtDate(p.last_entry_date)}</td>
           <td class="muted">${fmtPing(p.last_ping_at)}</td>
-          <td><span class="caret">▶</span></td>
+          <td><span class="toggle-label">Summary</span></td>
         </tr>
         <tr class="detail-row" data-detail="${p.uuid}" style="display:none">
           <td colspan="6">
@@ -216,14 +220,17 @@
     function toggleRow(row){
       const uuid = row.dataset.uuid;
       const detail = document.querySelector(`tr[data-detail="${uuid}"]`);
+      const label = row.querySelector('.toggle-label');
       const open = detail.style.display !== 'none';
       if(open){
         detail.style.display = 'none';
         row.classList.remove('open');
+        if(label) label.textContent = 'Summary';
         return;
       }
       detail.style.display = '';
       row.classList.add('open');
+      if(label) label.textContent = 'Close';
       loadSynopsis(uuid);
     }
 
