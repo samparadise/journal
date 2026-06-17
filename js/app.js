@@ -277,6 +277,21 @@ async function checkUser(e164Phone) {
   return res.json()  // { exists, profile }
 }
 
+// Fire a one-time welcome SMS for a brand-new player (situation-aware:
+// no prompt today / prompt coming / prompt already out). Best-effort.
+async function apiWelcome() {
+  if (STUB_AUTH) return
+  try {
+    await fetch(serverURL + '/journal/welcome/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usertoken: userToken, bizid: window.APP_CONFIG.j2BizId })
+    })
+  } catch (err) {
+    console.error('Welcome send failed:', err)
+  }
+}
+
 // Store profile vars (name, birthday) on the User for this biz.
 // Must run after auth — the User object is created by /auth/.
 async function pushProfile(mobile, vars) {
@@ -960,7 +975,8 @@ $('otp-form').addEventListener('submit', async e => {
     state.user = await verifyCode(token)
 
     // New user: store their profile info now that the User object
-    // exists (created server-side during /auth/)
+    // exists (created server-side during /auth/), then send a one-time
+    // situation-aware welcome text.
     if (state.pendingProfile) {
       try {
         await pushProfile(state.user, state.pendingProfile)
@@ -970,6 +986,7 @@ $('otp-form').addEventListener('submit', async e => {
         console.error('Profile save failed:', err)
       }
       state.pendingProfile = null
+      apiWelcome()   // fire-and-forget; needs the profile name saved first
     }
 
     await handleAuthenticated()
