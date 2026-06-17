@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Calendar — Summer Pages</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple-800:#2A2380; --purple-700:#3C3489; --purple-600:#4F46B8;
+      --purple-500:#6B5FE4; --purple-300:#B8B2F6; --purple-100:#EEEDFE; --purple-50:#F5F4FF;
+      --pink-500:#E85B8C; --yellow-400:#FAC775;
+      --ink:#1a1a2e; --ink-muted:#9997B0; --border:#E0DEFA; --surface:#fff;
+      --font-body:'Nunito',system-ui,sans-serif; --font-display:'Fredoka',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font-body); color:var(--ink); background:var(--purple-50);}
+
+    header{
+      background:var(--purple-700); padding:16px 22px;
+      display:flex; align-items:center; gap:11px;
+    }
+    .logo-mark{width:38px; height:38px; border-radius:11px; background:var(--yellow-400);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+    .logo-mark img{width:72%; height:72%; object-fit:contain;}
+    .title{font-family:var(--font-display); font-size:20px; font-weight:600; color:#fff;}
+    .title small{display:block; font-family:var(--font-body); font-size:12px; color:var(--purple-300); font-weight:600;}
+
+    .container{max-width:1000px; margin:0 auto; padding:22px 18px 60px;}
+
+    /* legend */
+    .legend{display:flex; gap:18px; flex-wrap:wrap; margin-bottom:18px; font-size:13px; color:var(--ink-muted); font-weight:600;}
+    .legend span{display:inline-flex; align-items:center; gap:6px;}
+    .swatch{width:16px; height:16px; border-radius:5px; display:inline-block;}
+    .swatch.prompt{background:var(--purple-500);}
+    .swatch.today{background:#fff; border:2px solid var(--pink-500);}
+
+    /* responsive grid of month cards */
+    .months{display:grid; gap:16px; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));}
+    .month{
+      background:var(--surface); border:1.5px solid var(--border); border-radius:16px;
+      padding:16px; box-shadow:0 2px 10px rgba(26,26,46,.05);
+    }
+    .month-name{font-family:var(--font-display); font-size:17px; font-weight:600; color:var(--purple-800); margin-bottom:12px; text-align:center;}
+    .grid{display:grid; grid-template-columns:repeat(7, 1fr); gap:4px;}
+    .dow{font-size:11px; font-weight:800; color:var(--ink-muted); text-align:center; padding-bottom:4px;}
+    .cell{
+      aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:600; color:var(--ink); border-radius:9px;
+      position:relative;
+    }
+    .cell.blank{visibility:hidden;}
+    .cell.muted{color:#C8C6D4; font-weight:500;}
+    .cell.prompt{
+      background:var(--purple-500); color:#fff; cursor:pointer;
+      transition:transform .1s, background .12s;
+    }
+    .cell.prompt:hover{background:var(--purple-700);}
+    .cell.prompt:active{transform:scale(.92);}
+    .cell.today{box-shadow:inset 0 0 0 2.5px var(--pink-500);}
+    /* prompt + today: keep the pink ring on top of the purple fill */
+    .cell.prompt.today{box-shadow:inset 0 0 0 2.5px var(--pink-500);}
+
+    .state{padding:60px 20px; text-align:center; color:var(--ink-muted); font-size:16px;}
+
+    /* preview modal */
+    .overlay{position:fixed; inset:0; background:rgba(26,26,46,.5); backdrop-filter:blur(2px);
+      display:flex; align-items:center; justify-content:center; padding:20px; z-index:100;}
+    .overlay.hidden{display:none;}
+    .preview{
+      background:var(--surface); border-radius:20px; width:100%; max-width:460px;
+      padding:26px; box-shadow:0 24px 70px rgba(26,26,46,.3); position:relative;
+    }
+    .preview-close{position:absolute; top:14px; right:14px; width:30px; height:30px;
+      border-radius:50%; border:1.5px solid var(--border); background:transparent;
+      cursor:pointer; color:var(--ink-muted); font-size:14px; font-family:var(--font-body);}
+    .preview-close:hover{background:var(--purple-50);}
+    .preview-icon{width:54px; height:54px; border-radius:14px; background:var(--yellow-400);
+      display:flex; align-items:center; justify-content:center; margin-bottom:14px;}
+    .preview-icon img{width:70%; height:70%; object-fit:contain;}
+    .preview-date{font-size:13px; font-weight:700; color:var(--purple-500); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;}
+    .preview-body{font-family:var(--font-display); font-size:21px; font-weight:500; color:var(--purple-800); line-height:1.4; margin-bottom:10px;}
+    .preview-sub{font-size:15px; color:var(--ink-muted); line-height:1.6;}
+    .preview-today-tag{display:inline-block; margin-top:14px; background:var(--pink-500); color:#fff;
+      font-size:12px; font-weight:700; padding:3px 12px; border-radius:20px;}
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-mark"><img src="/icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+    <div class="title">Prompt Calendar<small>Summer Pages</small></div>
+  </header>
+
+  <div class="container">
+    <div class="legend">
+      <span><span class="swatch prompt"></span> Prompt day (tap to preview)</span>
+      <span><span class="swatch today"></span> Today</span>
+    </div>
+    <div id="months" class="months"></div>
+    <div class="state" id="state">Loading calendar…</div>
+  </div>
+
+  <div class="overlay hidden" id="overlay">
+    <div class="preview">
+      <button class="preview-close" id="preview-close" aria-label="Close">✕</button>
+      <div class="preview-icon hidden" id="preview-icon"><img id="preview-icon-img" src="" alt=""></div>
+      <div class="preview-date" id="preview-date"></div>
+      <div class="preview-body" id="preview-body"></div>
+      <div class="preview-sub" id="preview-sub"></div>
+      <div class="preview-today-tag hidden" id="preview-today-tag">Today's prompt</div>
+    </div>
+  </div>
+
+  <script>
+    const pad = n => String(n).padStart(2, '0');
+    const todayIso = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; })();
+    const DOW = ['S','M','T','W','T','F','S'];
+
+    function fmtLong(iso){
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Date(y, m-1, d).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+    }
+
+    async function load(){
+      let prompts;
+      try {
+        const res = await fetch('/prompts.json', {cache:'no-store'});
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        prompts = await res.json();
+      } catch (err) {
+        document.getElementById('state').textContent = 'Could not load prompts: ' + err.message;
+        return;
+      }
+      render(prompts);
+    }
+
+    let byDate = {};   // module-level so click + keyboard handlers share it
+
+    function render(prompts){
+      byDate = {};
+      prompts.forEach(p => { if(p.date) byDate[p.date] = p; });
+      const dates = Object.keys(byDate).sort();
+      if(!dates.length){
+        document.getElementById('state').textContent = 'No prompts scheduled yet.';
+        return;
+      }
+      document.getElementById('state').style.display = 'none';
+
+      // span of months from first to last prompt
+      const [minY, minM] = dates[0].split('-').map(Number);
+      const [maxY, maxM] = dates[dates.length-1].split('-').map(Number);
+
+      const wrap = document.getElementById('months');
+      let y = minY, m = minM;  // m is 1-based
+      while (y < maxY || (y === maxY && m <= maxM)) {
+        wrap.appendChild(buildMonth(y, m, byDate));
+        m++; if(m > 12){ m = 1; y++; }
+      }
+
+      wrap.addEventListener('click', e => {
+        const cell = e.target.closest('.cell.prompt');
+        if(cell) openPreview(byDate[cell.dataset.date]);
+      });
+    }
+
+    function buildMonth(year, month1, byDate){
+      const card = document.createElement('div');
+      card.className = 'month';
+
+      const name = new Date(year, month1-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+      card.innerHTML = `<div class="month-name">${name}</div>`;
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      DOW.forEach(d => {
+        const h = document.createElement('div'); h.className = 'dow'; h.textContent = d; grid.appendChild(h);
+      });
+
+      const firstDow = new Date(year, month1-1, 1).getDay();          // 0=Sun
+      const days = new Date(year, month1, 0).getDate();
+      for(let i=0;i<firstDow;i++){
+        const b = document.createElement('div'); b.className = 'cell blank'; grid.appendChild(b);
+      }
+      for(let day=1; day<=days; day++){
+        const iso = `${year}-${pad(month1)}-${pad(day)}`;
+        const cell = document.createElement('div');
+        const isPrompt = !!byDate[iso];
+        const isToday  = iso === todayIso;
+        cell.className = 'cell' + (isPrompt ? ' prompt' : ' muted') + (isToday ? ' today' : '');
+        cell.textContent = day;
+        if(isPrompt){ cell.dataset.date = iso; cell.setAttribute('role','button'); cell.tabIndex = 0; }
+        grid.appendChild(cell);
+      }
+      card.appendChild(grid);
+      return card;
+    }
+
+    function openPreview(p){
+      if(!p) return;
+      const iconWrap = document.getElementById('preview-icon');
+      if(p.icon){
+        document.getElementById('preview-icon-img').src = `/icons/${p.icon}.svg`;
+        iconWrap.classList.remove('hidden');
+      } else {
+        iconWrap.classList.add('hidden');
+      }
+      document.getElementById('preview-date').textContent = fmtLong(p.date);
+      document.getElementById('preview-body').textContent = p.body || '';
+      document.getElementById('preview-sub').textContent  = p.subtext || '';
+      document.getElementById('preview-today-tag').classList.toggle('hidden', p.date !== todayIso);
+      document.getElementById('overlay').classList.remove('hidden');
+    }
+
+    function closePreview(){ document.getElementById('overlay').classList.add('hidden'); }
+    document.getElementById('preview-close').addEventListener('click', closePreview);
+    document.getElementById('overlay').addEventListener('click', e => { if(e.target.id === 'overlay') closePreview(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') closePreview(); });
+
+    // keyboard activation of prompt cells
+    document.getElementById('months').addEventListener('keydown', e => {
+      if((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('prompt')){
+        e.preventDefault();
+        openPreview(byDate[e.target.dataset.date]);
+      }
+    });
+
+    load();
+  </script>
+
+</body>
+</html>
