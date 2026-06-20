@@ -388,8 +388,15 @@ async function apiPostEntry(promptId, entryMd, mood, final = false) {
 
 async function loadPrompts() {
   const res = await fetch('prompts.json')
-  if (!res.ok) throw new Error('Could not load prompts.json')
-  return res.json()
+  if (!res.ok) throw new Error(`Could not fetch prompts.json (HTTP ${res.status})`)
+  const text = await res.text()
+  try {
+    return JSON.parse(text)
+  } catch (e) {
+    // A malformed prompts.json (missing comma, stray quote) lands here.
+    // Surface it loudly instead of bubbling up an opaque parser error.
+    throw new Error(`prompts.json is not valid JSON — ${e.message}`)
+  }
 }
 
 function getActivePrompt(prompts) {
@@ -410,6 +417,19 @@ function localDate(d = new Date()) {
   const m  = String(d.getMonth() + 1).padStart(2, '0')
   const dd = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${dd}`
+}
+
+// Parse a server ISO timestamp tolerantly. The graph stores created_at as
+// e.g. "2026-06-16T09:00:06+0000" (no colon in the offset). Chrome parses
+// that, but Safari's `new Date()` THROWS "string did not match expected
+// pattern" on it — so normalize the offset (and a trailing Z) first.
+function parseTs(s) {
+  if (!s) return new Date(NaN)
+  let str = String(s)
+  if (str.endsWith('Z')) str = str.slice(0, -1) + '+00:00'
+  const m = str.match(/([+-]\d{2})(\d{2})$/)
+  if (m) str = str.slice(0, m.index) + m[1] + ':' + m[2]
+  return new Date(str)
 }
 
 // Streak = consecutive completed PROMPTS in the schedule, not calendar days.
@@ -439,7 +459,7 @@ function getWeekDays(entries) {
   monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
   monday.setHours(0, 0, 0, 0)
   const todayStr    = localDate(now)
-  const entryDates  = new Set(entries.map(e => localDate(new Date(e.created_at))))
+  const entryDates  = new Set(entries.map(e => localDate(parseTs(e.created_at))))
   const promptDates = new Set(state.prompts.map(p => p.date))
   const dayLabels   = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
   const dayNames    = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -461,7 +481,7 @@ function wordCount(text) {
 }
 
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  return parseTs(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
 }
 
 function formatDateShort(isoDate) {
@@ -1360,8 +1380,11 @@ async function handleAuthenticated() {
     await loadAndRenderApp()
     showMainScreen()
   } catch (err) {
-    console.error('App init error:', err)
-    showAuthScreen()
+    // A render/data error here is NOT an auth failure — don't bounce to the
+    // sign-in screen (that's misleading). Surface the real reason instead.
+    console.error('Could not load the app after sign-in:', err)
+    alert('Something went wrong loading Summer Pages:\n\n' + (err && err.message) +
+          '\n\n(If you just edited prompts.json, check it for a JSON typo.)')
   }
 }
 
