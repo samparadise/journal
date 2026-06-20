@@ -438,15 +438,21 @@ function getWeekDays(entries) {
   const monday = new Date(now)
   monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
   monday.setHours(0, 0, 0, 0)
-  const todayStr   = localDate(now)
-  const entryDates = new Set(entries.map(e => localDate(new Date(e.created_at))))
-  const dayLabels  = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-  const dayNames   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const todayStr    = localDate(now)
+  const entryDates  = new Set(entries.map(e => localDate(new Date(e.created_at))))
+  const promptDates = new Set(state.prompts.map(p => p.date))
+  const dayLabels   = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+  const dayNames    = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   return Array.from({ length: 7 }, (_, i) => {
     const d   = new Date(monday); d.setDate(monday.getDate() + i)
     const iso = localDate(d)
-    return { label: dayLabels[i], name: dayNames[i], date: iso,
-             done: entryDates.has(iso), isToday: iso === todayStr }
+    return {
+      label: dayLabels[i], name: dayNames[i], date: iso,
+      done:      entryDates.has(iso),
+      hasPrompt: promptDates.has(iso),
+      isToday:   iso === todayStr,
+      isPast:    iso < todayStr,
+    }
   })
 }
 
@@ -708,17 +714,51 @@ function renderSidebar() {
 
 function renderWeekProgress() {
   const days      = getWeekDays(state.entries)
-  const doneCount = days.filter(d => d.done).length
-  const goal      = 3
-  $('week-goal').textContent     = `${Math.min(doneCount, goal)} of ${goal}`
-  $('progress-fill').style.width = `${Math.min(100, (doneCount / goal) * 100)}%`
-  $('week-dots').innerHTML = days.map(day => `
-    <div class="week-dot-col">
-      <div class="week-dot ${day.done ? 'done' : ''} ${day.isToday && !day.done ? 'today' : ''}">
-        ${day.done ? '<i class="fa-solid fa-check" aria-hidden="true" style="font-size:11px;"></i>' : day.label}
-      </div>
-      <span class="week-dot-name">${day.name}</span>
-    </div>`).join('')
+  const promptDays = days.filter(d => d.hasPrompt).length
+  const doneCount  = days.filter(d => d.done).length
+
+  // Goal is the number of prompts actually scheduled this week, not a fixed 3.
+  if (promptDays > 0) {
+    $('week-goal').textContent     = `${doneCount} of ${promptDays}`
+    $('progress-fill').style.width = `${Math.min(100, (doneCount / promptDays) * 100)}%`
+  } else {
+    $('week-goal').textContent     = 'no prompts'
+    $('progress-fill').style.width = '0%'
+  }
+
+  $('week-dots').innerHTML = days.map(day => {
+    // Classify each dot: done, today's open prompt, an upcoming prompt,
+    // a past missed prompt (plain), or simply no prompt scheduled (struck).
+    let cls = ''
+    if (!day.hasPrompt)               cls = 'no-prompt'
+    else if (day.done)                cls = 'done'
+    else if (day.isToday)             cls = 'today'
+    else if (!day.isPast)             cls = 'upcoming'   // a prompt is coming this day
+    // else: past prompt, not done → plain (reads as a genuine miss)
+
+    const inner = day.done
+      ? '<i class="fa-solid fa-check" aria-hidden="true" style="font-size:11px;"></i>'
+      : day.label
+    return `
+      <div class="week-dot-col">
+        <div class="week-dot ${cls}">${inner}</div>
+        <span class="week-dot-name">${day.name}</span>
+      </div>`
+  }).join('')
+
+  // Heads-up about the next prompt (today's, or the next upcoming one).
+  const todayStr = localDate()
+  const next = state.prompts
+    .filter(p => p.date >= todayStr)
+    .sort((a, b) => (a.date < b.date ? -1 : 1))[0]
+  const noteEl = $('next-prompt-note')
+  if (!next) {
+    noteEl.textContent = "That's a wrap on summer prompts! 🌅"
+  } else if (next.date === todayStr) {
+    noteEl.textContent = "📨 Today's prompt is here!"
+  } else {
+    noteEl.textContent = `📨 Next prompt: ${formatDateShort(next.date)}`
+  }
 }
 
 function updateWordCount() {
