@@ -35,6 +35,7 @@ const state = {
   prompts:        [],     // loaded from prompts.json
   todayPrompt:    null,
   entries:        [],
+  streak:         null,   // computed server-side; null in stub mode
   uploadingCount: 0,      // photos currently uploading
   selectedMood:   null,
   currentEntryId: null,
@@ -329,6 +330,9 @@ async function apiLoadEntries() {
   })
   if (!res.ok) throw new Error('Could not load your entries')
   const data = await res.json()
+  // Streak is computed server-side (single source of truth) and rides along
+  // with the entries response; cache it for the renderers.
+  state.streak = typeof data.streak === 'number' ? data.streak : null
   return data.entries || []
 }
 
@@ -432,10 +436,15 @@ function parseTs(s) {
   return new Date(str)
 }
 
-// Streak = consecutive completed PROMPTS in the schedule, not calendar days.
-// Prompts aren't daily, so a non-prompt day (or a multi-day gap between
-// prompts) must NOT break the streak — only missing an actual past prompt does.
-function computeStreak(entries) {
+// The streak is computed server-side (app.utils.journal_streak) and arrives
+// with the entries response → state.streak. Use that. Only fall back to a
+// local computation in stub mode, where there's no server.
+function getStreak() {
+  return state.streak != null ? state.streak : computeLocalStreak(state.entries)
+}
+
+// Stub-mode-only mirror of the server rule (kept in sync with journal_streak).
+function computeLocalStreak(entries) {
   const today   = localDate()
   const doneIds = new Set(entries.filter(e => e.final).map(e => e.prompt_id))
   const past    = state.prompts
@@ -444,7 +453,6 @@ function computeStreak(entries) {
   if (!past.length) return 0
 
   let i = past.length - 1
-  // Today's prompt not done yet shouldn't break the streak mid-day — skip it.
   if (past[i].date === today && !doneIds.has(past[i].id)) i--
 
   let streak = 0
@@ -565,7 +573,7 @@ async function doAutosave() {
 // ============================================================
 
 function renderStreakHeader() {
-  const streak = computeStreak(state.entries)
+  const streak = getStreak()
   if (streak >= 2) {   // a single day isn't a streak
     $('header-streak-count').textContent = `${streak}-day streak`
     show($('header-streak'))
@@ -812,7 +820,7 @@ function renderMobile() {
     (sum, e) => sum + wordCount(mdToText(e.entry_md)), 0
   )
   $('stat-entries').textContent = doneEntries.length
-  const mStreak = computeStreak(entries)
+  const mStreak = getStreak()
   $('stat-streak').textContent  = mStreak >= 2 ? mStreak : 0   // a single day isn't a streak
   $('stat-words').textContent   = totalWords >= 1000
     ? (totalWords / 1000).toFixed(1) + 'k'
