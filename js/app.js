@@ -757,16 +757,18 @@ function renderWeekProgress() {
   $('week-dots').innerHTML = days.map(day => {
     // Classify each dot: done, today's open prompt, an upcoming prompt,
     // a past missed prompt (plain), or simply no prompt scheduled (struck).
-    let cls = ''
+    let cls = '', missed = false
     if (!day.hasPrompt)               cls = 'no-prompt'
     else if (day.done)                cls = 'done'
     else if (day.isToday)             cls = 'today'
     else if (!day.isPast)             cls = 'upcoming'   // a prompt is coming this day
-    // else: past prompt, not done → plain (reads as a genuine miss)
+    else { cls = 'missed'; missed = true }               // past prompt, not done → a genuine miss
 
     const inner = day.done
       ? '<i class="fa-solid fa-check" aria-hidden="true" style="font-size:11px;"></i>'
-      : day.label
+      : missed
+        ? '<img src="icons/grimace.svg" class="week-dot-miss" alt="missed" title="Missed this prompt">'
+        : day.label
     return `
       <div class="week-dot-col">
         <div class="week-dot ${cls}">${inner}</div>
@@ -842,22 +844,23 @@ function renderMobile() {
   // between two completed ones collapses to one gap marker).
   const cells = []
   done.forEach((item, i) => {
-    if (i > 0 && idxById[item.prompt.id] - idxById[done[i - 1].prompt.id] > 1) {
-      cells.push({ gap: true })
+    if (i > 0) {
+      const skipped = idxById[item.prompt.id] - idxById[done[i - 1].prompt.id] - 1
+      if (skipped > 0) cells.push({ gap: true, missed: skipped })
     }
     cells.push(item)
   })
 
-  // Trailing gap: a prompt AFTER the last completed entry that's already in
-  // the past (excludes today's still-live prompt) means the streak broke and
+  // Trailing gap: prompt(s) AFTER the last completed entry that are already in
+  // the past (excludes today's still-live prompt) mean the streak broke and
   // restarts next time. Show one marker next to the last tile so the break is
   // visible even though there's no later trophy to anchor it.
   if (done.length) {
     const lastIdx  = idxById[done[done.length - 1].prompt.id]
     const doneIds  = new Set(done.map(d => d.prompt.id))
-    const missedAfter = order.some((p, i) =>
-      i > lastIdx && p.date < today && !doneIds.has(p.id))
-    if (missedAfter) cells.push({ gap: true, trailing: true })
+    const missedAfter = order.filter((p, i) =>
+      i > lastIdx && p.date < today && !doneIds.has(p.id)).length
+    if (missedAfter) cells.push({ gap: true, trailing: true, missed: missedAfter })
   }
 
   const grid = $('mobile-trophy-grid')
@@ -871,13 +874,20 @@ function renderMobile() {
     $('mobile-empty').style.display = 'none'
     grid.innerHTML = cells.map(cell => {
       if (cell.gap) {
+        // grimace icon for the miss; superscript count when more than one
+        // prompt was skipped in this gap.
+        const badge = cell.missed > 1
+          ? `<span class="gap-count">${cell.missed}</span>` : ''
+        const icon = `<span class="gap-icon">
+            <img src="icons/grimace.svg" alt="" aria-hidden="true">${badge}</span>`
         return cell.trailing
           ? `<div class="mobile-trophy gap trailing" role="img"
-                  aria-label="Missed prompt — streak resets">
-               <span class="gap-dots">···</span>
+                  aria-label="Missed ${cell.missed} prompt(s) — streak resets">
+               ${icon}
                <span class="mobile-trophy-label">streak reset</span>
              </div>`
-          : `<div class="mobile-trophy gap" aria-hidden="true"><span class="gap-dots">···</span></div>`
+          : `<div class="mobile-trophy gap" role="img"
+                  aria-label="Missed ${cell.missed} prompt(s)">${icon}</div>`
       }
       const p = cell.prompt
       const color = tileColorForPrompt(p)
