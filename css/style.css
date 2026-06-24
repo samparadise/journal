@@ -218,9 +218,13 @@ html, body {
 }
 /* grimace icon + "N missed!" label marking skipped prompt(s) */
 .mobile-trophy.gap.trailing { border-color: rgba(255,255,255,0.28); }
-.mobile-trophy.gap .gap-icon { display: inline-flex; }
+.mobile-trophy.gap .gap-icon {
+  display: flex; align-items: center; justify-content: center; width: 100%;
+}
 .mobile-trophy.gap .gap-icon img {
-  width: 56px; max-width: 60%; height: auto; object-fit: contain;
+  /* grimace.svg has lots of empty padding inside its 1200×1200 viewBox, so it
+     needs to be near-full-width to match the tighter prompt icons' size. */
+  width: 96%; height: auto; object-fit: contain;
   /* icon is black; lighten it so it reads on the dark translucent gap tile */
   filter: brightness(0) invert(1);
   opacity: 0.85;

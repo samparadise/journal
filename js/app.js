@@ -404,10 +404,11 @@ async function loadPrompts() {
 }
 
 function getActivePrompt(prompts) {
+  // Only TODAY's prompt is ever active — it's the only one you can write.
+  // On days with no scheduled prompt this is null (a rest day), so the header
+  // doesn't show a stale past prompt you can't answer.
   const today = localDate()
-  const past  = prompts.filter(p => p.date <= today)
-  if (!past.length) return null
-  return past.reduce((a, b) => (a.date > b.date ? a : b))
+  return prompts.find(p => p.date === today) || null
 }
 
 // ============================================================
@@ -590,20 +591,36 @@ function renderApp() {
 
   renderStreakHeader()
 
-  // Prompt banner — day number = total entries written + 1
-  $('prompt-day').textContent     = `Day ${entries.length + 1}`
-  $('prompt-text').textContent    = todayPrompt?.body    || 'No prompt yet — check back soon!'
-  $('prompt-subtext').textContent = todayPrompt?.subtext || ''
-  $('prompt-subtext').style.display = todayPrompt?.subtext ? '' : 'none'
-
-  // Prompt icon tile
+  const todayStr   = localDate()
+  const nextPrompt = state.prompts
+    .filter(p => p.date > todayStr)
+    .sort((a, b) => (a.date < b.date ? -1 : 1))[0]
   const tile = $('prompt-icon-tile')
-  if (todayPrompt?.icon) {
-    $('prompt-icon-img').src = `icons/${todayPrompt.icon}.svg`
-    tile.style.setProperty('--prompt-tile-color', promptTileColor(todayPrompt))
-    show(tile)
+
+  if (todayPrompt) {
+    // Prompt banner — day number = total entries written + 1
+    $('prompt-day').textContent       = `Day ${entries.length + 1}`
+    show($('prompt-day'))
+    $('prompt-text').textContent      = todayPrompt.body
+    $('prompt-subtext').textContent   = todayPrompt.subtext || ''
+    $('prompt-subtext').style.display = todayPrompt.subtext ? '' : 'none'
+    if (todayPrompt.icon) {
+      $('prompt-icon-img').src = `icons/${todayPrompt.icon}.svg`
+      tile.style.setProperty('--prompt-tile-color', promptTileColor(todayPrompt))
+      show(tile)
+    } else {
+      hide(tile)
+    }
   } else {
+    // Rest day — no prompt scheduled. Show a relaxed state, never the last
+    // (stale) prompt, and point to the next one.
+    hide($('prompt-day'))
     hide(tile)
+    $('prompt-text').textContent      = 'No prompt today — enjoy the day! ☀️'
+    $('prompt-subtext').textContent   = nextPrompt
+      ? `Your next prompt arrives ${formatDateShort(nextPrompt.date)}.`
+      : "That's a wrap on summer prompts for now."
+    $('prompt-subtext').style.display = ''
   }
 
   // Entry date
@@ -620,26 +637,22 @@ function renderApp() {
   state.selectedMood   = existingEntry?.mood || null
   state.currentEntryId = existingEntry?.id || null
 
-  // Editability: only today's prompt, and only until it's finalized.
-  // No going back or forward in time — that's the whole point.
-  const todayStr      = localDate()
-  const isPromptToday = todayPrompt?.date === todayStr
-  const entryFinal    = !!existingEntry?.final
-  state.canEdit       = !!todayPrompt && isPromptToday && !entryFinal
+  // Editability: only today's prompt (getActivePrompt already enforces that),
+  // and only until it's finalized. No going back or forward in time.
+  const entryFinal = !!existingEntry?.final
+  state.canEdit    = !!todayPrompt && !entryFinal
 
-  // Locked note
+  // Locked note in the body: finished-today, or a rest-day note so the locked
+  // canvas isn't a bare, misleading "start writing" box.
   const note = $('locked-note')
   if (todayPrompt && entryFinal) {
     note.className = 'locked-note done-note'
     note.innerHTML = '🎉 You finished this one — nice work! Come back for the next prompt.'
     show(note)
-  } else if (todayPrompt && !isPromptToday) {
-    const next = state.prompts
-      .filter(p => p.date > todayStr)
-      .sort((a, b) => (a.date < b.date ? -1 : 1))[0]
+  } else if (!todayPrompt) {
     note.className = 'locked-note'
-    note.innerHTML = next
-      ? `🌞 No prompt today — your next one arrives ${formatDateShort(next.date)}. Enjoy the day!`
+    note.innerHTML = nextPrompt
+      ? `🌞 No prompt today — your next one arrives ${formatDateShort(nextPrompt.date)}. Enjoy the day!`
       : `🌞 That's all the prompts for now — more coming soon!`
     show(note)
   } else {
