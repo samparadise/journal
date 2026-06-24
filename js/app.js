@@ -874,20 +874,13 @@ function renderMobile() {
     $('mobile-empty').style.display = 'none'
     grid.innerHTML = cells.map(cell => {
       if (cell.gap) {
-        // grimace icon for the miss; superscript count when more than one
-        // prompt was skipped in this gap.
-        const badge = cell.missed > 1
-          ? `<span class="gap-count">${cell.missed}</span>` : ''
-        const icon = `<span class="gap-icon">
-            <img src="icons/grimace.svg" alt="" aria-hidden="true">${badge}</span>`
-        return cell.trailing
-          ? `<div class="mobile-trophy gap trailing" role="img"
-                  aria-label="Missed ${cell.missed} prompt(s) — streak resets">
-               ${icon}
-               <span class="mobile-trophy-label">streak reset</span>
-             </div>`
-          : `<div class="mobile-trophy gap" role="img"
-                  aria-label="Missed ${cell.missed} prompt(s)">${icon}</div>`
+        // grimace icon + a "N missed!" label for the skipped prompt(s).
+        return `
+          <div class="mobile-trophy gap${cell.trailing ? ' trailing' : ''}"
+               role="img" aria-label="Missed ${cell.missed} prompt(s)">
+            <span class="gap-icon"><img src="icons/grimace.svg" alt="" aria-hidden="true"></span>
+            <span class="mobile-trophy-label">${cell.missed} missed!</span>
+          </div>`
       }
       const p = cell.prompt
       const color = tileColorForPrompt(p)

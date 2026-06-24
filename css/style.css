@@ -216,42 +216,21 @@ html, body {
   border: 1.5px dashed rgba(255,255,255,0.2);
   box-shadow: none;
 }
-.mobile-trophy.gap .gap-dots {
-  color: var(--purple-300);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-/* grimace icon marking a missed prompt, with an optional superscript count */
-.mobile-trophy.gap .gap-icon { position: relative; display: inline-flex; }
+/* grimace icon + "N missed!" label marking skipped prompt(s) */
+.mobile-trophy.gap.trailing { border-color: rgba(255,255,255,0.28); }
+.mobile-trophy.gap .gap-icon { display: inline-flex; }
 .mobile-trophy.gap .gap-icon img {
-  width: 38px; height: 38px; object-fit: contain;
+  width: 56px; max-width: 60%; height: auto; object-fit: contain;
   /* icon is black; lighten it so it reads on the dark translucent gap tile */
   filter: brightness(0) invert(1);
-  opacity: 0.8;
+  opacity: 0.85;
 }
-.mobile-trophy.gap .gap-count {
-  position: absolute;
-  top: -6px; right: -10px;
-  min-width: 16px; height: 16px;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: var(--pink-500);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 16px;
-  text-align: center;
-}
-/* trailing gap = the streak broke after the last entry; label it so the
-   meaning is clear (inline gaps stay bare ellipses). */
-.mobile-trophy.gap.trailing { border-color: rgba(255,255,255,0.28); }
-.mobile-trophy.gap.trailing .mobile-trophy-label {
+.mobile-trophy.gap .mobile-trophy-label {
   color: var(--purple-300);
   opacity: 1;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .mobile-trophy-empty-msg {
