@@ -12,6 +12,8 @@
     "_frequency_caps": "Global guardrails so no player is over-messaged regardless of how many scenarios match. Cap is 2/day because a non-submitter can get the 9am prompt AND the 6pm nudge on the same prompt day.",
     "max_pings_per_day": 2,
     "min_hours_between_pings": 5,
+    "_max_unanswered_pings": "Stop nagging players who never engage. Counts consecutive MORNING PROMPTS a player ignores; after this many, the next morning prompt is a one-time friendly sign-off, then all pings go silent. Posting any entry resets the count and pings resume.",
+    "max_unanswered_pings": 3,
     "message_constraints": {
       "max_chars": 320,
       "format": "plain_text",

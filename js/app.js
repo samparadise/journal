@@ -848,6 +848,18 @@ function renderMobile() {
     cells.push(item)
   })
 
+  // Trailing gap: a prompt AFTER the last completed entry that's already in
+  // the past (excludes today's still-live prompt) means the streak broke and
+  // restarts next time. Show one marker next to the last tile so the break is
+  // visible even though there's no later trophy to anchor it.
+  if (done.length) {
+    const lastIdx  = idxById[done[done.length - 1].prompt.id]
+    const doneIds  = new Set(done.map(d => d.prompt.id))
+    const missedAfter = order.some((p, i) =>
+      i > lastIdx && p.date < today && !doneIds.has(p.id))
+    if (missedAfter) cells.push({ gap: true, trailing: true })
+  }
+
   const grid = $('mobile-trophy-grid')
 
   if (!done.length) {
@@ -859,7 +871,13 @@ function renderMobile() {
     $('mobile-empty').style.display = 'none'
     grid.innerHTML = cells.map(cell => {
       if (cell.gap) {
-        return `<div class="mobile-trophy gap" aria-hidden="true"><span class="gap-dots">···</span></div>`
+        return cell.trailing
+          ? `<div class="mobile-trophy gap trailing" role="img"
+                  aria-label="Missed prompt — streak resets">
+               <span class="gap-dots">···</span>
+               <span class="mobile-trophy-label">streak reset</span>
+             </div>`
+          : `<div class="mobile-trophy gap" aria-hidden="true"><span class="gap-dots">···</span></div>`
       }
       const p = cell.prompt
       const color = tileColorForPrompt(p)

@@ -222,6 +222,16 @@ html, body {
   font-weight: 700;
   letter-spacing: 1px;
 }
+/* trailing gap = the streak broke after the last entry; label it so the
+   meaning is clear (inline gaps stay bare ellipses). */
+.mobile-trophy.gap.trailing { border-color: rgba(255,255,255,0.28); }
+.mobile-trophy.gap.trailing .mobile-trophy-label {
+  color: var(--purple-300);
+  opacity: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 9px;
+}
 
 .mobile-trophy-empty-msg {
   width: 100%;
