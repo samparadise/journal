@@ -988,6 +988,25 @@ html, body {
   cursor: pointer;
   transition: border-color 0.12s, box-shadow 0.12s, transform 0.1s;
 }
+/* a missed-prompt marker between entries (mirrors the mobile grimace tile) */
+.entry-missed {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 13px;
+  border: 1.5px dashed var(--border);
+  border-left: 4px solid var(--pink-500);
+  border-radius: 13px;
+  background: rgba(255, 107, 157, 0.06);
+}
+.entry-missed-icon { width: 30px; height: 30px; object-fit: contain; opacity: 0.85; }
+.entry-missed-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pink-500);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
 .entry-card:hover {
   border-color: var(--purple-400);
   border-left-color: var(--purple-500);
@@ -1096,6 +1115,17 @@ html, body {
   box-shadow: 0 2px 8px rgba(107, 95, 228, 0.4);
 }
 .week-dot.today { border-color: var(--pink-500); color: var(--pink-500); }
+/* today with no prompt — still clearly "you are here", not struck out */
+.week-dot.today.rest {
+  border-color: var(--pink-500);
+  color: var(--pink-500);
+  background: rgba(255, 107, 157, 0.08);
+  text-decoration: none;
+}
+/* finished today's prompt — keep the done fill but ring it as today */
+.week-dot.done.today { box-shadow: 0 0 0 2px var(--pink-500); }
+/* emphasize today's weekday label */
+.week-dot-col.is-today .week-dot-name { color: var(--pink-500); font-weight: 800; }
 /* a prompt is scheduled for this upcoming day */
 .week-dot.upcoming { border-style: dashed; border-color: var(--purple-300); color: var(--purple-400); }
 /* no prompt scheduled — subtle so it never reads as a missed day */

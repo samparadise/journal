@@ -718,7 +718,44 @@ function renderSidebar() {
     return
   }
 
-  list.innerHTML = entries.map(entry => {
+  // Schedule positions, to detect missed prompts between/after entries
+  // (mirrors the mobile collection's gap logic).
+  const today   = localDate()
+  const order   = [...state.prompts].sort((a, b) => (a.date < b.date ? -1 : 1))
+  const idxById = {}
+  order.forEach((p, i) => { idxById[p.id] = i })
+
+  const done = entries
+    .filter(e => e.final)
+    .map(e => ({ entry: e, prompt: state.prompts.find(p => p.id === e.prompt_id) }))
+    .filter(x => x.prompt)
+    .sort((a, b) => (a.prompt.date < b.prompt.date ? -1 : 1))
+
+  // Build ascending cells: entries with a "N missed" marker wherever the
+  // schedule skips, plus a trailing marker for past prompts after the last.
+  const cells = []
+  done.forEach((item, i) => {
+    if (i > 0) {
+      const skipped = idxById[item.prompt.id] - idxById[done[i - 1].prompt.id] - 1
+      if (skipped > 0) cells.push({ gap: true, missed: skipped })
+    }
+    cells.push(item)
+  })
+  if (done.length) {
+    const lastIdx = idxById[done[done.length - 1].prompt.id]
+    const doneIds = new Set(done.map(d => d.prompt.id))
+    const missedAfter = order.filter((p, i) =>
+      i > lastIdx && p.date < today && !doneIds.has(p.id)).length
+    if (missedAfter) cells.push({ gap: true, missed: missedAfter })
+  }
+
+  const missedRow = n => `
+    <div class="entry-missed" role="img" aria-label="Missed ${n} prompt${n === 1 ? '' : 's'}">
+      <img src="icons/grimace.svg" class="entry-missed-icon" alt="" aria-hidden="true">
+      <span class="entry-missed-label">${n} missed prompt${n === 1 ? '' : 's'}</span>
+    </div>`
+
+  const entryCard = entry => {
     const mood       = entry.mood || ''
     const prompt     = state.prompts.find(p => p.id === entry.prompt_id)
     const promptText = prompt?.body || ''
@@ -750,7 +787,12 @@ function renderSidebar() {
           ${photoHtml}
         </div>
       </div>`
-  }).join('')
+  }
+
+  // Newest first for the sidebar.
+  list.innerHTML = cells.reverse()
+    .map(cell => cell.gap ? missedRow(cell.missed) : entryCard(cell.entry))
+    .join('')
 }
 
 function renderWeekProgress() {
@@ -768,12 +810,14 @@ function renderWeekProgress() {
   }
 
   $('week-dots').innerHTML = days.map(day => {
-    // Classify each dot: done, today's open prompt, an upcoming prompt,
-    // a past missed prompt (plain), or simply no prompt scheduled (struck).
+    // Today is always marked (even on a rest day, so "you are here" is clear).
+    // Otherwise: done, an upcoming prompt, a past missed prompt (grimace), or
+    // simply no prompt scheduled that day (struck).
     let cls = '', missed = false
-    if (!day.hasPrompt)               cls = 'no-prompt'
+    if (day.isToday) {
+      cls = !day.hasPrompt ? 'today rest' : (day.done ? 'done today' : 'today')
+    } else if (!day.hasPrompt)        cls = 'no-prompt'
     else if (day.done)                cls = 'done'
-    else if (day.isToday)             cls = 'today'
     else if (!day.isPast)             cls = 'upcoming'   // a prompt is coming this day
     else { cls = 'missed'; missed = true }               // past prompt, not done → a genuine miss
 
@@ -783,7 +827,7 @@ function renderWeekProgress() {
         ? '<img src="icons/grimace.svg" class="week-dot-miss" alt="missed" title="Missed this prompt">'
         : day.label
     return `
-      <div class="week-dot-col">
+      <div class="week-dot-col${day.isToday ? ' is-today' : ''}">
         <div class="week-dot ${cls}">${inner}</div>
         <span class="week-dot-name">${day.name}</span>
       </div>`
