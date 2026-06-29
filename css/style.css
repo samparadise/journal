@@ -999,7 +999,8 @@ html, body {
   border-radius: 13px;
   background: rgba(255, 107, 157, 0.06);
 }
-.entry-missed-icon { width: 30px; height: 30px; object-fit: contain; opacity: 0.85; }
+/* grimace.svg has heavy internal padding, so it needs to be large to read */
+.entry-missed-icon { width: 64px; height: 64px; object-fit: contain; opacity: 0.85; margin-left: auto; }
 .entry-missed-label {
   font-size: 13px;
   font-weight: 800;

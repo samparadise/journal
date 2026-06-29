@@ -751,8 +751,8 @@ function renderSidebar() {
 
   const missedRow = n => `
     <div class="entry-missed" role="img" aria-label="Missed ${n} prompt${n === 1 ? '' : 's'}">
-      <img src="icons/grimace.svg" class="entry-missed-icon" alt="" aria-hidden="true">
       <span class="entry-missed-label">${n} missed prompt${n === 1 ? '' : 's'}</span>
+      <img src="icons/grimace.svg" class="entry-missed-icon" alt="" aria-hidden="true">
     </div>`
 
   const entryCard = entry => {
