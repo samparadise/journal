@@ -84,7 +84,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 36px 20px 48px;
+  padding: 36px 24px 48px;
   background: linear-gradient(160deg, var(--purple-800) 0%, var(--purple-600) 100%);
   gap: 0;
 }
@@ -163,8 +163,11 @@ html, body {
   width: 100%;
   max-width: 390px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  /* minmax(0, 1fr) lets columns shrink below their content's intrinsic size —
+     without the 0 minimum the icons blow the grid past the viewport edge. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;          /* every row the same height for even spacing */
+  gap: 12px;
   margin-bottom: 28px;
 }
 
@@ -219,12 +222,17 @@ html, body {
 /* grimace icon + "N missed!" label marking skipped prompt(s) */
 .mobile-trophy.gap.trailing { border-color: rgba(255,255,255,0.28); }
 .mobile-trophy.gap .gap-icon {
-  display: flex; align-items: center; justify-content: center; width: 100%;
+  /* fill the space left above the label, so the grimace is as big as it can
+     be while always fitting the (square) tile — no overflow at any width. */
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
 .mobile-trophy.gap .gap-icon img {
-  /* grimace.svg has lots of empty padding inside its 1200×1200 viewBox, so it
-     needs to be near-full-width to match the tighter prompt icons' size. */
-  width: 96%; height: auto; object-fit: contain;
+  /* grimace.svg has lots of empty padding inside its 1200×1200 viewBox, so
+     let it use the full available box (height-driven, square SVG). */
+  height: 100%; width: auto; max-width: 100%; object-fit: contain;
   /* icon is black; lighten it so it reads on the dark translucent gap tile */
   filter: brightness(0) invert(1);
   opacity: 0.85;
