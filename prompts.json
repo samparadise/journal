@@ -68,5 +68,19 @@
     "body": "Describe your perfect Saturday morning in ridiculous detail.",
     "subtext": "What do you hear, smell, eat? Who's there?",
     "icon": "morning"
+  },
+  {
+    "date": "2026-07-06",
+    "id": "20260706-door",
+    "body": "You find a door in your house you've never noticed before.",
+    "subtext": "Open it. Where does it lead? Tell me everything on the other side.",
+    "icon": "door"
+  },
+  {
+    "date": "2026-08-12",
+    "id": "20260812-note",
+    "body": "Write a note to yourself for next summer.",
+    "subtext": "What do you want future-you to remember about right now?",
+    "icon": "note"
   }
 ]
