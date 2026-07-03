@@ -1507,6 +1507,10 @@ html, body {
   padding: 40px 38px;
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px;
 }
+.landing-perk-icon {
+  width: 40px; height: 40px; object-fit: contain; margin-bottom: 12px;
+  filter: brightness(0) invert(1);   /* white on the dark parents panel */
+}
 .landing-perk h4 { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin-bottom: 7px; color: #fff; }
 .landing-perk p { font-size: 15px; color: var(--purple-100); line-height: 1.55; }
 
