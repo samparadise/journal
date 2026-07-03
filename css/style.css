@@ -1356,3 +1356,179 @@ html, body {
 @media (min-width: 768px) and (max-width: 1050px) {
   .app-screen { grid-template-columns: 1fr 270px; }
 }
+
+/* ============================================================
+   LANDING  (public explainer for logged-out visitors)
+   ============================================================ */
+.landing {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(165deg, var(--purple-800) 0%, var(--purple-600) 58%, var(--purple-500) 100%);
+  color: #fff;
+}
+
+/* purple hero zone that holds the nav, headline, and scattered icons */
+.landing-top { position: relative; overflow: hidden; }
+
+.landing-confetti { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.landing-confetti img {
+  position: absolute; width: 66px; opacity: 0.30;
+  filter: brightness(0) invert(1);   /* white silhouettes */
+}
+.conf-0 { top: 14%; left: 5%;  transform: rotate(-13deg); }
+.conf-1 { top: 20%; right: 7%; transform: rotate(11deg);  width: 82px; }
+.conf-2 { top: 52%; left: 4%;  transform: rotate(7deg); }
+.conf-3 { top: 60%; right: 5%; transform: rotate(-9deg);  width: 74px; }
+.conf-4 { top: 80%; left: 12%; transform: rotate(14deg); }
+.conf-5 { top: 85%; right: 15%;transform: rotate(-6deg); }
+.conf-6 { top: 38%; left: 46%; transform: rotate(6deg);   opacity: 0.18; }
+
+/* nav */
+.landing-nav {
+  position: relative; z-index: 2;
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 24px;
+}
+.landing-brand { display: flex; align-items: center; gap: 11px; }
+.landing-brand-name { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: #fff; }
+.landing-nav-signin {
+  background: rgba(255,255,255,0.14); border: 1.5px solid rgba(255,255,255,0.25);
+  color: #fff; font-family: var(--font-body); font-weight: 800; font-size: 15px;
+  padding: 9px 18px; border-radius: 999px; cursor: pointer; transition: background .15s;
+}
+.landing-nav-signin:hover { background: rgba(255,255,255,0.24); }
+
+/* hero */
+.landing-hero {
+  position: relative; z-index: 2;
+  max-width: 760px; margin: 0 auto; text-align: center;
+  padding: 26px 24px 66px;
+}
+.landing-badge {
+  display: inline-block; background: rgba(255,255,255,0.14);
+  border: 1.5px solid rgba(255,255,255,0.22);
+  padding: 7px 16px; border-radius: 999px; font-weight: 800; font-size: 14px;
+  color: var(--yellow-400); margin-bottom: 22px;
+}
+.landing-title {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(34px, 7vw, 58px); line-height: 1.06; color: #fff;
+  margin-bottom: 20px; letter-spacing: -0.01em;
+}
+.landing-sub {
+  font-size: clamp(17px, 2.4vw, 20px); line-height: 1.6;
+  color: var(--purple-100); max-width: 560px; margin: 0 auto 30px;
+}
+.landing-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.landing-cta {
+  font-family: var(--font-display); font-weight: 600; font-size: 18px;
+  padding: 15px 30px; border-radius: 14px; border: none; cursor: pointer;
+  background: var(--yellow-400); color: var(--purple-900);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25); transition: transform .12s, box-shadow .12s;
+}
+.landing-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+.landing-cta.secondary {
+  background: rgba(255,255,255,0.12); color: #fff; border: 1.5px solid rgba(255,255,255,0.28);
+  box-shadow: none;
+}
+.landing-cta.secondary:hover { background: rgba(255,255,255,0.2); }
+.landing-trust { margin-top: 20px; font-size: 14px; color: var(--purple-300); font-weight: 600; }
+
+/* how it works — sits on a white sheet that curves up over the hero */
+.landing-steps {
+  position: relative; z-index: 2;
+  background: #fff; color: var(--ink);
+  border-radius: 40px 40px 0 0; margin-top: -18px;
+  padding: 54px 24px 40px;
+}
+.landing-h2 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(26px, 4vw, 34px); text-align: center; color: var(--purple-800);
+  margin-bottom: 6px;
+}
+.landing-steps-hint {
+  text-align: center; color: var(--ink-muted); font-size: 15px;
+  font-weight: 600; margin-bottom: 26px;
+}
+
+/* how-it-works accordion */
+.accordion { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.acc-item {
+  background: var(--purple-50); border: 1.5px solid var(--border);
+  border-radius: 18px; overflow: hidden; transition: border-color .15s, box-shadow .15s;
+}
+.acc-item.open { border-color: var(--purple-300); box-shadow: 0 6px 20px rgba(107,95,228,.12); }
+.acc-head {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; background: none; border: none; cursor: pointer; text-align: left;
+}
+.acc-icon {
+  flex-shrink: 0; width: 46px; height: 46px; border-radius: 13px;
+  background: var(--yellow-100); display: flex; align-items: center; justify-content: center;
+}
+.acc-item:nth-child(2) .acc-icon { background: var(--green-100); }
+.acc-item:nth-child(3) .acc-icon { background: var(--blue-100); }
+.acc-item:nth-child(4) .acc-icon { background: var(--pink-100); }
+.acc-icon img { width: 60%; height: 60%; object-fit: contain; }
+.acc-title {
+  flex: 1; font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(17px, 2.4vw, 20px); color: var(--purple-800);
+  display: flex; align-items: center; gap: 10px;
+}
+.acc-num {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--purple-500); color: #fff; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+/* +/– toggle drawn with pseudo-elements so it animates on open */
+.acc-toggle { position: relative; flex-shrink: 0; width: 18px; height: 18px; }
+.acc-toggle::before, .acc-toggle::after {
+  content: ''; position: absolute; background: var(--purple-400); border-radius: 2px;
+  top: 50%; left: 50%; transform: translate(-50%, -50%); transition: transform .2s;
+}
+.acc-toggle::before { width: 14px; height: 2.5px; }
+.acc-toggle::after  { width: 2.5px; height: 14px; }
+.acc-item.open .acc-toggle::after { transform: translate(-50%, -50%) scaleY(0); }
+/* collapsible body — animated via max-height */
+.acc-body { max-height: 0; overflow: hidden; transition: max-height .28s ease; }
+.acc-item.open .acc-body { max-height: 460px; }
+.acc-body-inner { padding: 0 20px 18px 78px; }
+.acc-body-inner p { font-size: 16px; line-height: 1.6; color: var(--ink-light); }
+@media (max-width: 560px) {
+  .acc-body-inner { padding-left: 20px; }
+}
+
+/* reassurance for parents */
+.landing-parents { background: #fff; color: var(--ink); padding: 12px 24px 56px; }
+.landing-parents-inner {
+  max-width: 860px; margin: 0 auto;
+  background: var(--purple-800); color: #fff; border-radius: 28px;
+  padding: 40px 38px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px;
+}
+.landing-perk h4 { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin-bottom: 7px; color: #fff; }
+.landing-perk p { font-size: 15px; color: var(--purple-100); line-height: 1.55; }
+
+/* final CTA band */
+.landing-final { background: #fff; text-align: center; padding: 6px 24px 66px; }
+.landing-final-inner {
+  max-width: 720px; margin: 0 auto;
+  background: linear-gradient(150deg, var(--purple-600), var(--pink-500));
+  border-radius: 32px; padding: 52px 30px; color: #fff;
+}
+.landing-final h2 { font-family: var(--font-display); font-weight: 600; font-size: clamp(26px, 4vw, 34px); margin-bottom: 24px; }
+
+.landing-foot {
+  background: #fff; text-align: center; padding: 0 24px 44px;
+  color: var(--ink-muted); font-size: 14px;
+}
+.landing-foot a { color: var(--purple-600); font-weight: 700; text-decoration: none; }
+.landing-foot a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .landing-step-grid { grid-template-columns: 1fr; gap: 16px; }
+  .landing-parents-inner { grid-template-columns: 1fr; gap: 22px; padding: 32px 26px; }
+  .landing-cta, .landing-cta.secondary { width: 100%; }
+  .landing-hero { padding-bottom: 54px; }
+}

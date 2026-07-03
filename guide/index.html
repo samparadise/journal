@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Summer Pages works</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple-800:#2A2380; --purple-700:#3C3489; --purple-600:#4F46B8;
+      --purple-500:#6B5FE4; --purple-300:#B8B2F6; --purple-100:#EEEDFE; --purple-50:#F5F4FF;
+      --pink-500:#E85B8C; --yellow-100:#FEF3DC; --green-100:#E1F5EE; --blue-100:#E6F1FB;
+      --border:#E0DEFA; --ink:#1a1a2e; --ink-light:#5F5E5A; --ink-muted:#6E6C84;
+      --font-body:'Nunito',system-ui,sans-serif; --font-display:'Fredoka',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:var(--font-body); font-size:18px; color:var(--ink);
+      background:linear-gradient(160deg,var(--purple-800),var(--purple-600));
+      min-height:100vh; line-height:1.6;
+    }
+    .wrap{max-width:640px; margin:0 auto; padding:40px 20px 56px;}
+    .logo{display:flex; align-items:center; gap:13px; margin-bottom:26px;}
+    .logo-mark{
+      width:52px; height:52px; border-radius:14px; background:var(--yellow-100);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      box-shadow:0 2px 10px rgba(0,0,0,.18);
+    }
+    .logo-mark img{width:72%; height:72%; object-fit:contain;}
+    .app-name{font-family:var(--font-display); font-size:26px; font-weight:600; color:#fff;}
+    .card{background:#fff; border-radius:24px; padding:34px 30px; box-shadow:0 24px 60px rgba(26,26,46,.30);}
+    h1{font-family:var(--font-display); font-size:29px; font-weight:600; color:var(--purple-800); margin-bottom:8px;}
+    .lead{color:var(--ink-light); font-size:17px; margin-bottom:26px;}
+    .step{display:flex; gap:16px; align-items:flex-start; margin-bottom:22px;}
+    .step-emoji{
+      flex-shrink:0; width:50px; height:50px; border-radius:14px; font-size:26px;
+      display:flex; align-items:center; justify-content:center; background:var(--purple-50);
+    }
+    .step:nth-child(2) .step-emoji{background:var(--yellow-100);}
+    .step:nth-child(3) .step-emoji{background:var(--green-100);}
+    .step:nth-child(4) .step-emoji{background:var(--blue-100);}
+    .step:nth-child(5) .step-emoji{background:var(--purple-50);}
+    .step h3{font-family:var(--font-display); font-size:19px; font-weight:600; color:var(--purple-800); margin-bottom:3px;}
+    .step p{font-size:16px; color:var(--ink-light);}
+    .back{
+      display:inline-block; margin-top:10px; padding:13px 26px;
+      background:var(--purple-500); color:#fff; text-decoration:none;
+      border-radius:12px; font-family:var(--font-display); font-weight:600; font-size:17px;
+      box-shadow:0 4px 14px rgba(107,95,228,.35);
+    }
+    .back:hover{background:var(--purple-700);}
+    footer{text-align:center; color:var(--purple-300); font-size:14px; margin-top:26px;}
+    @media (max-width:560px){ .card{padding:26px 20px;} h1{font-size:25px;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="logo">
+      <div class="logo-mark"><img src="/icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+      <div class="app-name">Summer Pages</div>
+    </div>
+
+    <div class="card">
+      <h1>How it works ☀️</h1>
+      <p class="lead">You're in! Here's the whole game in five quick beats.</p>
+
+      <div class="step">
+        <div class="step-emoji">📲</div>
+        <div>
+          <h3>A prompt shows up by text</h3>
+          <p>Every few days you'll get a text with a new prompt — a question or a fun idea to write about. No app to open, no schedule to remember. Just watch for the text!</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-emoji">💻</div>
+        <div>
+          <h3>Write on a big screen</h3>
+          <p>Open Summer Pages on a laptop or computer to write. Phones are perfect for reading your stuff — but writing happens at a keyboard, where you've got room to think.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-emoji">✍️</div>
+        <div>
+          <h3>A few minutes is plenty</h3>
+          <p>Write as much or as little as you want. Add a photo, pick a mood, hit Post. It saves as you go, so you can't lose it.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-emoji">🏆</div>
+        <div>
+          <h3>Watch your collection grow</h3>
+          <p>Every prompt you finish turns into a colorful tile on your phone. Keep a streak going, and look back at everything you've made anytime.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-emoji">🌈</div>
+        <div>
+          <h3>Miss a few? No biggie</h3>
+          <p>Summer gets busy. If you skip some prompts, that's totally fine — jump back in whenever you feel like it. Your pages are always right here waiting.</p>
+        </div>
+      </div>
+
+      <a class="back" href="/">← Back to my pages</a>
+    </div>
+
+    <footer>Summer Pages · your summer, in your own words</footer>
+  </div>
+</body>
+</html>

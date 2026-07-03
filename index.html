@@ -70,13 +70,144 @@
     <p class="mobile-cta-sub">Open Summer Pages on your MacBook to write — it works best on a big screen.</p>
   </div>
 
-  <a class="mobile-about-link" href="/about">What is Summer Pages?</a>
+  <a class="mobile-about-link" id="mobile-about-link" href="/guide">How does this work?</a>
 
 </div>
 
 <!-- ============================================================
      AUTH SCREEN
      ============================================================ -->
+<!-- ============================================================
+     LANDING  (public explainer — shown to logged-out visitors)
+     ============================================================ -->
+<div id="landing-screen" class="landing hidden">
+
+  <div class="landing-top">
+    <!-- floating decorative prompt icons, filled from prompts.json -->
+    <div class="landing-confetti" id="landing-confetti" aria-hidden="true"></div>
+
+    <header class="landing-nav">
+      <div class="landing-brand">
+        <div class="logo-mark"><img src="icons/noun-sunshine-5125127.svg" alt="" aria-hidden="true"></div>
+        <span class="landing-brand-name">Summer Pages</span>
+      </div>
+      <button class="landing-nav-signin" id="landing-signin" type="button">Sign in</button>
+    </header>
+
+    <section class="landing-hero">
+      <div class="landing-badge">☀️ A summer writing adventure</div>
+      <h1 class="landing-title">Help your kid capture<br>a summer of memories.</h1>
+      <p class="landing-sub">
+        Every few days a playful prompt arrives by text. Your kid sits down at a
+        real keyboard, writes for a few minutes — silly or serious — and builds a
+        summer-long collection of their own stories. No grades. No feed. No pressure.
+      </p>
+      <div class="landing-cta-row">
+        <button class="landing-cta" id="landing-start" type="button">Get started — it's free</button>
+        <button class="landing-cta secondary" id="landing-share" type="button">Share with a friend</button>
+      </div>
+      <div class="landing-trust">Made for kids aged 11–99 · A phone to sign up, a keyboard to write</div>
+    </section>
+  </div>
+
+  <!-- how it works — tap a step to expand -->
+  <section class="landing-steps">
+    <h2 class="landing-h2">How it works</h2>
+    <p class="landing-steps-hint">Tap any step for the details.</p>
+    <div class="accordion" id="landing-accordion">
+
+      <div class="acc-item">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-icon" data-icon-slot></span>
+          <span class="acc-title"><span class="acc-num">1</span> A prompt arrives by text</span>
+          <span class="acc-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="acc-body"><div class="acc-body-inner">
+          <p>Every few days — not every day — a fresh question lands on their phone
+             by text message: “Invent a new holiday,” “Describe a place you'd love to
+             go.” That's why a mobile number is needed to sign up: the texts are how
+             the whole thing works. Nothing to install.</p>
+        </div></div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-icon" data-icon-slot></span>
+          <span class="acc-title"><span class="acc-num">2</span> They write on a big screen</span>
+          <span class="acc-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="acc-body"><div class="acc-body-inner">
+          <p>Writing happens on a laptop or desktop — <strong>not</strong> the phone.
+             It's a deliberate nudge away from thumb-tapping and toward sitting at a
+             keyboard, thinking, and actually writing for a few minutes. A little room
+             to breathe makes a big difference.</p>
+        </div></div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-icon" data-icon-slot></span>
+          <span class="acc-title"><span class="acc-num">3</span> Progress lives on their phone</span>
+          <span class="acc-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="acc-body"><div class="acc-body-inner">
+          <p>The phone is home base for looking back. Every finished prompt becomes a
+             colorful tile, streaks build up, and they can reread everything they've
+             made anytime — a growing scrapbook of the summer in their pocket.</p>
+        </div></div>
+      </div>
+
+      <div class="acc-item">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-icon" data-icon-slot></span>
+          <span class="acc-title"><span class="acc-num">4</span> A friendly AI keeps it personal</span>
+          <span class="acc-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="acc-body"><div class="acc-body-inner">
+          <p>All the nudges, check-ins and encouragement are handled automatically and
+             tuned to each kid. On a roll? They'll get the occasional “nice work.” Gone
+             quiet for a few prompts? It eases off, then gently invites them back when
+             they're ready — no guilt trips. And no human is reading over their shoulder.</p>
+        </div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- reassurance for parents -->
+  <section class="landing-parents">
+    <div class="landing-parents-inner">
+      <div class="landing-perk">
+        <h4>🛟 Safe by design</h4>
+        <p>No public feed, no comments, no strangers — and no human reading their writing. Just your kid's own private pages.</p>
+      </div>
+      <div class="landing-perk">
+        <h4>🚫 No ads, no noise</h4>
+        <p>Nothing to sell them and nothing to doom-scroll. A gentle text every few days, then done.</p>
+      </div>
+      <div class="landing-perk">
+        <h4>👪 Better with friends</h4>
+        <p>Invite their cousins or the whole friend group — everyone gets the same prompts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- final CTA -->
+  <section class="landing-final">
+    <div class="landing-final-inner">
+      <h2>Ready to jump in?</h2>
+      <div class="landing-cta-row">
+        <button class="landing-cta" id="landing-start-2" type="button">Get started — it's free</button>
+        <button class="landing-cta secondary" id="landing-share-2" type="button">Share with a friend</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="landing-foot">
+    <span>☀️ Summer Pages — your summer, in your own words</span>
+  </footer>
+</div>
+
 <div id="auth-screen" class="auth-screen hidden">
   <div class="auth-card">
 
@@ -89,10 +220,10 @@
     </div>
 
     <div id="phone-step">
-      <div class="auth-heading">Sign in</div>
-      <div class="auth-subheading">Enter your phone number and we'll text you a code.</div>
+      <div class="auth-heading">Start playing</div>
+      <div class="auth-subheading">Enter the <strong>player's</strong> mobile number — that's where prompts and the sign-in code get texted. Setting this up on a laptop? Keep the player's phone handy for the code.</div>
       <form id="phone-form" novalidate>
-        <label class="auth-label" for="phone-input">Phone number</label>
+        <label class="auth-label" for="phone-input">Player's mobile number</label>
         <div class="phone-field">
           <span class="country-pick">
             <!-- UK temporarily disabled until the Summer Pages Twilio number +
@@ -122,12 +253,13 @@
         <div id="phone-error" class="auth-error" role="alert"></div>
         <button id="send-otp-btn" class="auth-btn" type="submit">Send code</button>
       </form>
-      <a class="auth-about-link" href="/about">New here? What is Summer Pages?</a>
+      <a class="auth-about-link" id="auth-about-link" href="/about">New here? What is Summer Pages?</a>
+      <div class="auth-back" id="back-to-landing" role="button" tabindex="0">← Back</div>
     </div>
 
     <div id="otp-step" class="hidden">
-      <div class="auth-heading">Check your texts</div>
-      <div class="auth-subheading">We sent a code to your phone from a (512) number. Enter it below.</div>
+      <div class="auth-heading">Check the player's texts</div>
+      <div class="auth-subheading">We just texted a code to that number from a (512) area code. Grab the player's phone and enter it below.</div>
       <form id="otp-form" novalidate>
         <label class="auth-label" for="otp-input">Verification code</label>
         <input id="otp-input" class="auth-input" type="text"

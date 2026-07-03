@@ -968,7 +968,78 @@ function renderMobile() {
 // SCREEN TRANSITIONS
 // ============================================================
 
+// Public explainer for logged-out visitors. The "Get started"/"Sign in"
+// buttons flip over to the auth screen.
+function showLandingScreen() {
+  hide($('app-screen'))
+  hide($('mobile-screen'))
+  hide($('profile-setup-screen'))
+  hide($('auth-screen'))
+  show($('landing-screen'))
+
+  // Auth-aware CTAs: a signed-in visitor (e.g. tapping "What is Summer Pages?"
+  // from inside the app) gets "go to my pages" instead of "sign in", so they're
+  // never stranded on the marketing page.
+  const authed = typeof isAuthenticated !== 'undefined' && isAuthenticated
+  const signin = $('landing-signin')
+  if (signin) signin.textContent = authed ? 'My pages →' : 'Sign in'
+  document.querySelectorAll('#landing-start, #landing-start-2').forEach(b => {
+    b.textContent = authed ? 'Go to my pages' : "Get started — it's free"
+  })
+
+  decorateLanding()   // fire-and-forget; landing is fine if icons don't load
+}
+
+// Where the landing's primary buttons go, depending on sign-in state.
+function landingEnter() {
+  if (typeof isAuthenticated !== 'undefined' && isAuthenticated) showMainScreen()
+  else showAuthScreen()
+}
+
+// Sprinkle a random handful of the prompt icons around the landing page —
+// the step tiles and the floating background silhouettes.
+async function decorateLanding() {
+  let icons = []
+  try {
+    const prompts = await loadPrompts()
+    icons = prompts.map(p => p.icon).filter(Boolean)
+  } catch (e) {
+    console.warn('Landing icons unavailable:', e)
+    return
+  }
+  if (!icons.length) return
+
+  const shuffled = [...icons].sort(() => Math.random() - 0.5)
+
+  document.querySelectorAll('#landing-screen [data-icon-slot]').forEach((el, i) => {
+    el.innerHTML = `<img src="icons/${shuffled[i % shuffled.length]}.svg" alt="" aria-hidden="true">`
+  })
+
+  const conf = $('landing-confetti')
+  if (conf) {
+    conf.innerHTML = shuffled.slice(0, 7).map((name, i) =>
+      `<img class="conf-${i}" src="icons/${name}.svg" alt="" aria-hidden="true">`).join('')
+  }
+}
+
+// Share sheet (native where available) → falls back to copying the link.
+async function shareApp() {
+  const url  = 'https://july-journal.com'
+  const text = 'Summer Pages — a fun daily writing adventure for kids. Come join us!'
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Summer Pages', text, url })
+      return
+    }
+    await navigator.clipboard.writeText(url)
+    alert('Link copied — paste it to a friend!\n\n' + url)
+  } catch (e) {
+    /* user dismissed the share sheet — nothing to do */
+  }
+}
+
 function showAuthScreen() {
+  hide($('landing-screen'))
   hide($('app-screen'))
   hide($('mobile-screen'))
   hide($('profile-setup-screen'))
@@ -981,6 +1052,8 @@ function showAuthScreen() {
 // CSS media queries decide which one renders (full app on
 // desktop, to-do list on mobile).
 function showMainScreen() {
+  hide($('landing-screen'))
+  hide($('auth-screen'))
   renderMobile()
   show($('app-screen'))
   show($('mobile-screen'))
@@ -1146,6 +1219,45 @@ $('back-to-phone').addEventListener('click', () => {
   hide($('otp-step')); show($('phone-step'))
   $('otp-input').value = ''; $('otp-error').textContent = ''
 })
+
+// ============================================================
+// EVENT HANDLERS — Landing
+// ============================================================
+
+;['landing-start', 'landing-start-2', 'landing-signin'].forEach(id =>
+  $(id)?.addEventListener('click', landingEnter))
+;['landing-share', 'landing-share-2'].forEach(id =>
+  $(id)?.addEventListener('click', shareApp))
+
+// The auth-screen "What is Summer Pages?" link opens the landing in-app (the
+// /about page now just redirects here, so the href is a no-JS fallback). The
+// mobile "How does this work?" link is a real navigation to the player guide.
+$('auth-about-link')?.addEventListener('click', e => { e.preventDefault(); showLandingScreen() })
+
+// Landing "How it works" accordion — tap a step header to expand its detail
+// (single-open: opening one closes the others).
+document.querySelectorAll('#landing-accordion .acc-head').forEach(head => {
+  head.addEventListener('click', () => {
+    const item = head.closest('.acc-item')
+    const isOpen = item.classList.contains('open')
+    document.querySelectorAll('#landing-accordion .acc-item').forEach(other => {
+      other.classList.remove('open')
+      other.querySelector('.acc-head').setAttribute('aria-expanded', 'false')
+    })
+    if (!isOpen) {
+      item.classList.add('open')
+      head.setAttribute('aria-expanded', 'true')
+    }
+  })
+})
+
+const backToLanding = $('back-to-landing')
+if (backToLanding) {
+  backToLanding.addEventListener('click', showLandingScreen)
+  backToLanding.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showLandingScreen() }
+  })
+}
 
 // ============================================================
 // EVENT HANDLERS — Profile setup
@@ -1502,10 +1614,10 @@ async function init() {
     }
     console.error('Authenticated but no mobile in profile:', userProfile)
   }
-  showAuthScreen()
+  showLandingScreen()
 }
 
 init().catch(err => {
   console.error('Init failed:', err)
-  showAuthScreen()
+  showLandingScreen()
 })
