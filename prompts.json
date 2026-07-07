@@ -82,5 +82,19 @@
     "body": "Write a note to yourself for next summer.",
     "subtext": "What do you want future-you to remember about right now?",
     "icon": "note"
+  },
+  {
+    "date": "2026-07-08",
+    "id": "20260708-eats",
+    "body": "What's the best thing you've eaten so far this summer?",
+    "subtext": "I need all the details: when, where, what, why was it great?",
+    "icon": "eat"
+  },
+  {
+    "date": "2026-07-09",
+    "id": "20260709-friend",
+    "body": "Introduce me to one of your friends!",
+    "subtext": "What's best about them? Where did you meet? Is there a secret you share?",
+    "icon": "friend"
   }
 ]
