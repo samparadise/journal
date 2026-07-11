@@ -96,5 +96,12 @@
     "body": "Introduce me to one of your friends!",
     "subtext": "What's best about them? Where did you meet? Is there a secret you share?",
     "icon": "friend"
+  },
+  {
+    "date": "2026-07-11",
+    "id": "20260711-pet",
+    "body": "If your pet could talk for just 1 hour, what would they say to you?",
+    "subtext": "Real pet or imaginary. What have they been dying to tell you?",
+    "icon": "dog"
   }
 ]
