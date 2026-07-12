@@ -77,13 +77,6 @@
     "icon": "door"
   },
   {
-    "date": "2026-08-12",
-    "id": "20260812-note",
-    "body": "Write a note to yourself for next summer.",
-    "subtext": "What do you want future-you to remember about right now?",
-    "icon": "note"
-  },
-  {
     "date": "2026-07-08",
     "id": "20260708-eats",
     "body": "What's the best thing you've eaten so far this summer?",
@@ -147,6 +140,13 @@
     "icon": "whole-world"
   },
   {
+    "date": "2026-07-27",
+    "id": "20260809-dinner",
+    "body": "You can invite anyone to dinner — alive, gone, or made up. Who?",
+    "subtext": "What do you eat, and what's the first thing you ask them?",
+    "icon": "dinner"
+  },
+  {
     "date": "2026-07-28",
     "id": "20260728-room",
     "body": "Design your dream room from scratch — no budget, no rules.",
@@ -175,10 +175,10 @@
     "icon": "relax"
   },
   {
-    "date": "2026-08-09",
-    "id": "20260809-dinner",
-    "body": "You can invite anyone to dinner — alive, gone, or made up. Who?",
-    "subtext": "What do you eat, and what's the first thing you ask them?",
-    "icon": "dinner"
+    "date": "2026-08-12",
+    "id": "20260812-note",
+    "body": "Write a note to yourself for next summer.",
+    "subtext": "What do you want future-you to remember about right now?",
+    "icon": "note"
   }
 ]
