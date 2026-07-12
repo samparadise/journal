@@ -103,5 +103,82 @@
     "body": "If your pet could talk for just 1 hour, what would they say to you?",
     "subtext": "Real pet or imaginary. What have they been dying to tell you?",
     "icon": "dog"
+  },
+  {
+    "date": "2026-07-13",
+    "id": "20260713-brave",
+    "body": "Tell me about a time you were braver than you felt.",
+    "subtext": "It still counts even if your knees were shaking the whole time.",
+    "icon": "brave"
+  },
+  {
+    "date": "2026-07-15",
+    "id": "20260715-gadget",
+    "body": "Invent a gadget that would make your life way easier.",
+    "subtext": "What does it do, what's it called, and why does everyone secretly need one?",
+    "icon": "wrench"
+  },
+  {
+    "date": "2026-07-18",
+    "id": "20260718-bananas",
+    "body": "What's a tiny thing that drives you absolutely bananas?",
+    "subtext": "Go on a proper rant. Make it as dramatic as you like.",
+    "icon": "banana"
+  },
+  {
+    "date": "2026-07-20",
+    "id": "20260720-smell",
+    "body": "What's a smell that instantly takes you somewhere else?",
+    "subtext": "Where does it take you — and who's there when you arrive?",
+    "icon": "smell"
+  },
+  {
+    "date": "2026-07-23",
+    "id": "20260723-someone",
+    "body": "Who's someone that quietly makes your life better?",
+    "subtext": "Get specific — the little things they do that you might never say out loud.",
+    "icon": "persons"
+  },
+  {
+    "date": "2026-07-25",
+    "id": "20260725-incharge",
+    "body": "You're in charge of the whole world for one day. What's your first rule?",
+    "subtext": "What changes? What does everyone have to do — or stop doing?",
+    "icon": "whole-world"
+  },
+  {
+    "date": "2026-07-28",
+    "id": "20260728-room",
+    "body": "Design your dream room from scratch — no budget, no rules.",
+    "subtext": "What's in it? What's the single wildest thing you'd add?",
+    "icon": "room"
+  },
+  {
+    "date": "2026-07-31",
+    "id": "20260731-laugh",
+    "body": "What's something that makes you laugh every single time?",
+    "subtext": "A joke, a memory, a video, a person — why does it always get you?",
+    "icon": "laugh"
+  },
+  {
+    "date": "2026-08-03",
+    "id": "20260803-skill",
+    "body": "If you could instantly master one skill, what would it be?",
+    "subtext": "Why that one? And what's the very first thing you'd do with it?",
+    "icon": "juggle"
+  },
+  {
+    "date": "2026-08-06",
+    "id": "20260806-lazyday",
+    "body": "What's the best way to spend a totally empty, do-nothing day?",
+    "subtext": "No plans, no rush. Walk me through your perfect kind of nothing.",
+    "icon": "relax"
+  },
+  {
+    "date": "2026-08-09",
+    "id": "20260809-dinner",
+    "body": "You can invite anyone to dinner — alive, gone, or made up. Who?",
+    "subtext": "What do you eat, and what's the first thing you ask them?",
+    "icon": "dinner"
   }
 ]
