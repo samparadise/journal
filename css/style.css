@@ -485,6 +485,17 @@ html, body {
 }
 .auth-about-link:hover { text-decoration: underline; }
 
+/* SMS opt-in disclosure shown at the point of consent (A2P 10DLC / CTIA).
+   Small but must stay legible — carriers screenshot this during vetting. */
+.auth-consent {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  text-align: left;
+}
+.auth-consent a { color: var(--purple-500); font-weight: 700; }
+
 /* ============================================================
    APP LAYOUT  (desktop grid)
    ============================================================ */
