@@ -1,0 +1,14 @@
+{
+  "id": "/push-test/",
+  "name": "SP Push Test",
+  "short_name": "Push Test",
+  "start_url": "/push-test/",
+  "scope": "/push-test/",
+  "display": "standalone",
+  "background_color": "#2A2380",
+  "theme_color": "#2A2380",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
