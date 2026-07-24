@@ -32,7 +32,9 @@ function mdToText(md) {
 const state = {
   user:           null,   // E.164 phone string
   profile:        null,
-  prompts:        [],     // loaded from prompts.json
+  prompts:        [],     // active event's in-window prompts
+  event:          null,   // the active event object (or null between events)
+  eventNext:      null,   // soonest upcoming event, when none is active
   todayPrompt:    null,
   entries:        [],
   streak:         null,   // computed server-side; null in stub mode
@@ -387,20 +389,53 @@ async function apiPostEntry(promptId, entryMd, mood, final = false) {
 }
 
 // ============================================================
-// PROMPTS  (always from prompts.json)
+// PROMPTS  (resolved from the active event; see events/ + app/services/events.py)
 // ============================================================
 
-async function loadPrompts() {
-  const res = await fetch('prompts.json')
-  if (!res.ok) throw new Error(`Could not fetch prompts.json (HTTP ${res.status})`)
+async function fetchJson(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Could not fetch ${url} (HTTP ${res.status})`)
   const text = await res.text()
   try {
     return JSON.parse(text)
   } catch (e) {
-    // A malformed prompts.json (missing comma, stray quote) lands here.
-    // Surface it loudly instead of bubbling up an opaque parser error.
-    throw new Error(`prompts.json is not valid JSON — ${e.message}`)
+    // A malformed config file (missing comma, stray quote) lands here.
+    throw new Error(`${url} is not valid JSON — ${e.message}`)
   }
+}
+
+// Mirror of the server resolver (app/services/events.py): among events whose
+// window contains today, the most-recently-started one wins.
+function pickActiveEvent(events, today) {
+  const actives = events
+    .filter(e => e.start_date <= today && today <= e.end_date)
+    .sort((a, b) => (a.start_date < b.start_date ? -1 : 1))
+  return actives.length ? actives[actives.length - 1] : null
+}
+function pickNextEvent(events, today) {
+  return events
+    .filter(e => e.start_date > today)
+    .sort((a, b) => (a.start_date < b.start_date ? -1 : 1))[0] || null
+}
+
+// Resolve the active event and return its in-window prompts (dates outside the
+// window are ignored). Stashes state.event / state.eventNext for the rest-day
+// copy. Returns [] between events. This is what makes the whole app
+// event-scoped — everything downstream reads state.prompts.
+async function loadPrompts() {
+  const idx = await fetchJson('events/index.json')
+  const events = []
+  for (const id of (idx.events || [])) {
+    try { events.push(await fetchJson(`events/${id}.json`)) }
+    catch (e) { console.warn('Skipping event', id, e.message) }
+  }
+  const today   = localDate()
+  const active  = pickActiveEvent(events, today)
+  state.event     = active
+  state.eventNext = active ? null : pickNextEvent(events, today)
+  if (!active) return []
+  const s = active.start_date, e = active.end_date
+  return (active.prompts || []).filter(p => p.date && s <= p.date && p.date <= e)
 }
 
 function getActivePrompt(prompts) {
@@ -617,9 +652,10 @@ function renderApp() {
     hide($('prompt-day'))
     hide(tile)
     $('prompt-text').textContent      = 'No prompt today — enjoy the day! ☀️'
-    $('prompt-subtext').textContent   = nextPrompt
-      ? `Your next prompt arrives ${formatDateShort(nextPrompt.date)}.`
-      : "That's a wrap on summer prompts for now."
+    $('prompt-subtext').textContent   =
+        nextPrompt      ? `Your next prompt arrives ${formatDateShort(nextPrompt.date)}.`
+      : state.eventNext ? `${state.eventNext.name} starts ${formatDateShort(state.eventNext.start_date)}.`
+      :                   'No event running right now — check back soon!'
     $('prompt-subtext').style.display = ''
   }
 
@@ -651,9 +687,10 @@ function renderApp() {
     show(note)
   } else if (!todayPrompt) {
     note.className = 'locked-note'
-    note.innerHTML = nextPrompt
-      ? `🌞 No prompt today — your next one arrives ${formatDateShort(nextPrompt.date)}. Enjoy the day!`
-      : `🌞 That's all the prompts for now — more coming soon!`
+    note.innerHTML =
+        nextPrompt      ? `🌞 No prompt today — your next one arrives ${formatDateShort(nextPrompt.date)}. Enjoy the day!`
+      : state.eventNext ? `🌞 ${state.eventNext.name} starts ${formatDateShort(state.eventNext.start_date)} — see you then!`
+      :                   `🌞 That's all for now — more coming soon!`
     show(note)
   } else {
     hide(note)
@@ -840,7 +877,9 @@ function renderWeekProgress() {
     .sort((a, b) => (a.date < b.date ? -1 : 1))[0]
   const noteEl = $('next-prompt-note')
   if (!next) {
-    noteEl.textContent = "That's a wrap on summer prompts! 🌅"
+    noteEl.textContent = state.eventNext
+      ? `📅 ${state.eventNext.name} starts ${formatDateShort(state.eventNext.start_date)}`
+      : "That's a wrap for now! 🌅"
   } else if (next.date === todayStr) {
     noteEl.textContent = "📨 Today's prompt is here!"
   } else {
@@ -1114,9 +1153,10 @@ async function decorateLanding() {
     icons = prompts.map(p => p.icon).filter(Boolean)
   } catch (e) {
     console.warn('Landing icons unavailable:', e)
-    return
   }
-  if (!icons.length) return
+  // Between events the active schedule is empty — fall back to a static set so
+  // the public landing always has its scattered icons.
+  if (!icons.length) icons = ['beach', 'plane', 'holiday', 'creature', 'super', 'roadtrip', 'happy']
 
   const shuffled = [...icons].sort(() => Math.random() - 0.5)
 
@@ -1691,7 +1731,7 @@ async function handleAuthenticated() {
     // sign-in screen (that's misleading). Surface the real reason instead.
     console.error('Could not load the app after sign-in:', err)
     alert('Something went wrong loading Summer Pages:\n\n' + (err && err.message) +
-          '\n\n(If you just edited prompts.json, check it for a JSON typo.)')
+          '\n\n(If you just edited an event JSON, check it for a typo.)')
   }
 }
 
