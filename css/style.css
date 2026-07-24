@@ -277,6 +277,29 @@ html, body {
 }
 .mobile-cta-sub { font-size: 16px; color: var(--purple-300); line-height: 1.6; }
 
+/* push-notification enablement / install nudge */
+.mobile-push {
+  width: 100%; max-width: 390px;
+  background: rgba(250, 199, 117, 0.14);      /* warm yellow tint */
+  border: 1.5px solid rgba(250, 199, 117, 0.4);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+.mobile-push .push-title {
+  font-family: var(--font-display); font-weight: 600; font-size: 17px;
+  color: #fff; margin-bottom: 4px;
+}
+.mobile-push .push-sub { font-size: 14px; color: var(--purple-100); line-height: 1.5; }
+.mobile-push .push-btn {
+  margin-top: 12px; width: 100%;
+  padding: 12px; border: none; border-radius: 12px; cursor: pointer;
+  background: var(--yellow-400); color: var(--purple-900);
+  font-family: var(--font-display); font-weight: 600; font-size: 16px;
+}
+.mobile-push .push-btn:active { transform: scale(0.98); }
+
 .mobile-about-link {
   display: inline-block;
   margin-top: 28px;

@@ -16,5 +16,9 @@ window.APP_CONFIG = {
   stubData:     false,
 
   j2BizId:      'journal',
-  j2AppToken:   'summer-pages'
+  j2AppToken:   'summer-pages',
+
+  // Web Push application server key (VAPID PUBLIC key — not secret).
+  // Paste the value from `vapid --applicationServerKey` on the server.
+  vapidPublicKey: 'BNhs8uqkRcdaRDvPREFOXhfhwEwKGDGq30e8Y9UUhymA1ONCEY4EUL2RIRdgVgtEbEvOBmIM4x015w_yWPQRUW8'
 }
