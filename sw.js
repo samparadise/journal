@@ -1,20 +1,31 @@
 // Summer Pages service worker.
-// Phase 1 scope: handle incoming Web Push + notification taps. No fetch/offline
-// handling yet, so this does NOT affect the existing app's behavior.
+// Handles incoming Web Push + notification taps. No fetch/offline handling,
+// so it can't affect the existing app's behavior.
+
+// Activate new versions immediately instead of waiting for every tab to close
+// (otherwise a stale worker keeps handling pushes → iOS shows its generic
+// "<app> Notification" fallback instead of our title/body).
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; }
-  catch (e) { data = { body: event.data ? event.data.text() : '' }; }
+  if (event.data) {
+    try { data = event.data.json(); }
+    catch (e) { data = { body: event.data.text() }; }
+  }
 
   const title = data.title || 'Summer Pages';
   const options = {
     body:  data.body || '',
     icon:  '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',   // (ideally a monochrome glyph later)
+    badge: '/icons/icon-192.png',
     data:  { url: data.url || '/' },
     tag:   data.tag || 'summer-pages',
   };
+
+  // Must always show a notification for each push (userVisibleOnly), or the
+  // browser penalizes us / shows its own generic one.
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
