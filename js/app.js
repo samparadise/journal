@@ -863,6 +863,112 @@ function tileColorForPrompt(p) {
   ]
 }
 
+// ============================================================
+// WEB PUSH  (notifications replace SMS for prompt delivery)
+// ============================================================
+
+const pushSupported = () =>
+  'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
+const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+
+function urlB64ToUint8Array(base64) {
+  const pad = '='.repeat((4 - base64.length % 4) % 4)
+  const b64 = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/')
+  const raw = atob(b64)
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+}
+
+// Register the service worker once, on load (safe: sw.js has no fetch handler).
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(err =>
+      console.warn('Service worker registration failed:', err))
+  }
+}
+
+async function apiPushSubscribe(subscription) {
+  await fetch(serverURL + '/journal/push/subscribe/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usertoken: userToken, subscription, bizid: window.APP_CONFIG.j2BizId }),
+  })
+}
+
+// The tap-to-enable flow: permission → subscribe → store on the server.
+async function enablePush() {
+  const key = window.APP_CONFIG.vapidPublicKey
+  if (!pushSupported() || !key) {
+    console.warn('Push unsupported or VAPID key missing')
+    return
+  }
+  try {
+    const reg  = await navigator.serviceWorker.ready
+    const perm = await Notification.requestPermission()
+    if (perm !== 'granted') { renderPushBanner(); return }
+
+    let sub = await reg.pushManager.getSubscription()
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8Array(key),
+      })
+    }
+    await apiPushSubscribe(sub.toJSON())
+  } catch (err) {
+    console.error('Enabling notifications failed:', err)
+  }
+  renderPushBanner()
+}
+
+// Renders the mobile banner reflecting the current notification state.
+async function renderPushBanner() {
+  const el = $('mobile-push')
+  if (!el) return
+
+  const done = (html) => { el.innerHTML = html; show(el) }
+  const hideBanner = () => hide(el)
+
+  if (STUB_DATA || !pushSupported()) return hideBanner()
+
+  // iOS: notifications only work from the installed (home-screen) app.
+  if (isIOS() && !isStandalone()) {
+    return done(`
+      <div class="push-title">🔔 Turn on prompt alerts</div>
+      <div class="push-sub">Tap <strong>Share → Add to Home Screen</strong>, then open
+        Summer Pages from the new icon and turn on notifications.</div>`)
+  }
+
+  if (Notification.permission === 'denied') {
+    return done(`
+      <div class="push-title">🔕 Notifications are off</div>
+      <div class="push-sub">Prompts arrive as notifications — turn them back on for
+        Summer Pages in your device settings.</div>`)
+  }
+
+  // Already granted + subscribed? Then we're all set — no banner.
+  if (Notification.permission === 'granted') {
+    try {
+      const reg = await navigator.serviceWorker.ready
+      const sub = await reg.pushManager.getSubscription()
+      if (sub) {
+        await apiPushSubscribe(sub.toJSON())   // keep the server copy fresh
+        return hideBanner()
+      }
+    } catch (e) { /* fall through to the enable button */ }
+  }
+
+  done(`
+    <div class="push-title">🔔 Get your prompts here</div>
+    <div class="push-sub">Turn on notifications and a new prompt lands right on your phone.</div>
+    <button class="push-btn" id="push-enable" type="button">Turn on notifications</button>`)
+  const btn = $('push-enable')
+  if (btn) btn.addEventListener('click', enablePush)
+}
+
+
 function renderMobile() {
   const entries = STUB_DATA ? stubLoadEntries() : state.entries
   const today   = localDate()
@@ -962,6 +1068,9 @@ function renderMobile() {
   } else {
     hide($('mobile-cta'))
   }
+
+  // Notification enablement / install nudge (fire-and-forget; async state check)
+  renderPushBanner()
 }
 
 // ============================================================
@@ -1587,6 +1696,8 @@ async function handleAuthenticated() {
 }
 
 async function init() {
+  registerServiceWorker()   // enables Web Push once the user opts in
+
   if (STUB_AUTH) {
     // Skip auth entirely — go straight to the app
     state.user = STUB_USER
