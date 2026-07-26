@@ -477,6 +477,26 @@
 </div>
 
 <!-- ============================================================
+     MOBILE "go write" PROMPT MODAL
+     Shown on the trophy view when there's a current, unsubmitted prompt.
+     ============================================================ -->
+<div id="mobile-prompt-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mpm-heading">
+  <div class="modal-card confirm-card">
+    <div class="confirm-emoji">✍️</div>
+    <div class="confirm-heading" id="mpm-heading">Today's prompt is ready!</div>
+    <p class="mpm-prompt" id="mpm-prompt"></p>
+    <p class="mpm-sub" id="mpm-sub"></p>
+    <p class="confirm-text">
+      Head to <strong>july-journal.com</strong> on a computer to write it —
+      the editor opens on a big screen. ✨
+    </p>
+    <div class="confirm-actions">
+      <button class="confirm-done-btn" id="mpm-dismiss" type="button" style="width:100%">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      ENTRY MODAL
      ============================================================ -->
 <div id="entry-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">

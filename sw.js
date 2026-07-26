@@ -9,6 +9,10 @@ self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', (event) => {
+  // Debug: log the raw payload so we can tell "no data delivered" (encryption/
+  // keys) apart from "data arrived but not rendered" (handler issue).
+  console.log('[sw] push:', event.data ? event.data.text() : '(no data)');
+
   let data = {};
   if (event.data) {
     try { data = event.data.json(); }
@@ -23,6 +27,15 @@ self.addEventListener('push', (event) => {
     data:  { url: data.url || '/' },
     tag:   data.tag || 'summer-pages',
   };
+
+  // App-icon badge: set it when the push carries a badge count (a pending
+  // prompt), so the badge shows before the app is even opened. Best-effort.
+  if (typeof data.badge === 'number' && self.navigator && self.navigator.setAppBadge) {
+    try {
+      data.badge > 0 ? self.navigator.setAppBadge(data.badge)
+                     : self.navigator.clearAppBadge();
+    } catch (e) { /* unsupported */ }
+  }
 
   // Must always show a notification for each push (userVisibleOnly), or the
   // browser penalizes us / shows its own generic one.

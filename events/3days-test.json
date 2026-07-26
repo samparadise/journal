@@ -1,30 +1,30 @@
 {
   "id": "3days-test",
   "name": "Summer Pages Test",
-  "start_date": "2026-07-24",
-  "end_date": "2026-07-26",
+  "start_date": "2026-07-27",
+  "end_date": "2026-07-29",
   "settings": {
     "mid_event_join": "welcome",
     "streak_scope": "event"
   },
   "prompts": [
     {
-      "date": "2026-07-24",
-      "id": "20260724-one",
+      "date": "2026-07-27",
+      "id": "20260727-one",
       "body": "If you could be an animal for a day (not person), which?",
       "subtext": "How would the day go?",
       "icon": "chicken"
     },
     {
-      "date": "2026-07-25",
-      "id": "20260725-two",
+      "date": "2026-07-28",
+      "id": "20260728-two",
       "body": "What's your favorite yellow fruit?",
       "subtext": "Think hard this one is tricky!",
       "icon": "monkey"
     },
     {
-      "date": "2026-07-26",
-      "id": "20260726-three",
+      "date": "2026-07-29",
+      "id": "20260729-three",
       "body": "What can a dog do that you wish you could?",
       "subtext": "Anythng goes here. Just trying to get thru 3 prompts",
       "icon": "dog2"

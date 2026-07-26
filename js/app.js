@@ -1108,8 +1108,28 @@ function renderMobile() {
     hide($('mobile-cta'))
   }
 
+  // --- Badge + "go write" modal for a current, not-yet-submitted prompt ---
+  const promptPending = !!todayPrompt && !todayDone
+  updateAppBadge(promptPending)
+  if (promptPending) {
+    $('mpm-prompt').textContent = todayPrompt.body
+    $('mpm-sub').textContent    = todayPrompt.subtext || ''
+    show($('mobile-prompt-modal'))   // re-shows each render → reappears on each open
+  } else {
+    hide($('mobile-prompt-modal'))
+  }
+
   // Notification enablement / install nudge (fire-and-forget; async state check)
   renderPushBanner()
+}
+
+// App-icon badge: a "1" whenever there's a prompt waiting to be written.
+function updateAppBadge(pending) {
+  if (!('setAppBadge' in navigator)) return
+  try {
+    if (pending) navigator.setAppBadge(1)
+    else navigator.clearAppBadge()
+  } catch (e) { /* unsupported / not installed */ }
 }
 
 // ============================================================
@@ -1647,6 +1667,22 @@ function openTileEntry(target) {
 $('mobile-trophy-grid').addEventListener('click', e => openTileEntry(e.target))
 $('mobile-trophy-grid').addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTileEntry(e.target) }
+})
+
+// "Go write" modal — dismiss just hides it; it reappears on the next trophy-view
+// open (a fresh render), because renderMobile shows it whenever a prompt is pending.
+$('mpm-dismiss')?.addEventListener('click', () => hide($('mobile-prompt-modal')))
+
+// Returning to the app (foreground) refreshes entries so the badge/modal reflect
+// anything written elsewhere (e.g. on the desktop editor), then re-renders — which
+// re-shows the "go write" modal if the prompt is still pending.
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return
+  if ($('mobile-screen').classList.contains('hidden')) return
+  if (!STUB_DATA) {
+    try { state.entries = await apiLoadEntries() } catch (e) { /* keep cached */ }
+  }
+  renderMobile()
 })
 
 function openModal(entry) {

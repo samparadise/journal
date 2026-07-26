@@ -1341,6 +1341,22 @@ html, body {
   line-height: 1.6;
   margin-bottom: 24px;
 }
+/* the prompt text inside the mobile "go write" modal */
+.mpm-prompt {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--purple-700);
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+.mpm-sub {
+  font-size: 15px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+.mpm-sub:empty { display: none; }
 .confirm-actions {
   display: flex;
   gap: 10px;
