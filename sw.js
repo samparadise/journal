@@ -9,10 +9,6 @@ self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', (event) => {
-  // Debug: log the raw payload so we can tell "no data delivered" (encryption/
-  // keys) apart from "data arrived but not rendered" (handler issue).
-  console.log('[sw] push:', event.data ? event.data.text() : '(no data)');
-
   let data = {};
   if (event.data) {
     try { data = event.data.json(); }

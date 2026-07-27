@@ -35,6 +35,7 @@ const state = {
   prompts:        [],     // active event's in-window prompts
   event:          null,   // the active event object (or null between events)
   eventNext:      null,   // soonest upcoming event, when none is active
+  memberEvents:   null,   // event ids this player belongs to (null = unknown/all)
   todayPrompt:    null,
   entries:        [],
   streak:         null,   // computed server-side; null in stub mode
@@ -335,6 +336,8 @@ async function apiLoadEntries() {
   // Streak is computed server-side (single source of truth) and rides along
   // with the entries response; cache it for the renderers.
   state.streak = typeof data.streak === 'number' ? data.streak : null
+  // Which events this player belongs to → loadPrompts scopes to these.
+  state.memberEvents = Array.isArray(data.events) ? data.events : null
   return data.entries || []
 }
 
@@ -424,8 +427,12 @@ function pickNextEvent(events, today) {
 // event-scoped — everything downstream reads state.prompts.
 async function loadPrompts() {
   const idx = await fetchJson('events/index.json')
+  // Scope to the events this player belongs to. null = membership unknown
+  // (stub/logged-out) → consider all (e.g. landing icon decoration).
+  const memberOf = Array.isArray(state.memberEvents) ? state.memberEvents : null
+  const ids = (idx.events || []).filter(id => !memberOf || memberOf.includes(id))
   const events = []
-  for (const id of (idx.events || [])) {
+  for (const id of ids) {
     try { events.push(await fetchJson(`events/${id}.json`)) }
     catch (e) { console.warn('Skipping event', id, e.message) }
   }
@@ -1111,7 +1118,10 @@ function renderMobile() {
   // --- Badge + "go write" modal for a current, not-yet-submitted prompt ---
   const promptPending = !!todayPrompt && !todayDone
   updateAppBadge(promptPending)
-  if (promptPending) {
+  // Modal is mobile-only (renderMobile also runs on desktop, where the modal
+  // overlay would otherwise show over the composer).
+  const isMobileView = window.matchMedia('(max-width: 767px)').matches
+  if (promptPending && isMobileView) {
     $('mpm-prompt').textContent = todayPrompt.body
     $('mpm-sub').textContent    = todayPrompt.subtext || ''
     show($('mobile-prompt-modal'))   // re-shows each render → reappears on each open
@@ -1736,9 +1746,11 @@ $('modal-photos').addEventListener('click', e => {
 // ============================================================
 
 async function loadAndRenderApp() {
+  // Entries first — the response carries this player's event memberships, which
+  // loadPrompts uses to scope the active event to events they belong to.
+  state.entries     = STUB_DATA ? stubLoadEntries() : await apiLoadEntries()
   state.prompts     = await loadPrompts()
   state.todayPrompt = getActivePrompt(state.prompts)
-  state.entries     = STUB_DATA ? stubLoadEntries() : await apiLoadEntries()
   renderApp()
 }
 
