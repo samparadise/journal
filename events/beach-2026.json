@@ -1,6 +1,6 @@
 {
   "id": "beach-2026",
-  "name": "Summer Beach Trip 2026",
+  "name": "Beach Trip 2026 🌴",
   "start_date": "2026-08-04",
   "end_date": "2026-08-10",
   "settings": {
@@ -8,5 +8,26 @@
     "streak_scope": "event"
   },
   "prompts": [
+    {
+      "date": "2026-08-04",
+      "id": "20260804-things",
+      "body": "Heading to the beach? Tell me the 3 things you're looking forward to most.",
+      "subtext": "Kick it off great... lots of detail!",
+      "icon": "beach"
+    },
+    {
+      "date": "2026-08-05",
+      "id": "20260804-flying",
+      "body": "Day 1 was lots of travel. What was the funniest thing that happened?",
+      "subtext": "Bonus points if someone in the group looks silly",
+      "icon": "laugh"
+    },
+    {
+      "date": "2026-08-06",
+      "id": "20260804-day1",
+      "body": "What happened today that was completely unexpected?",
+      "subtext": "Accident? Surprise? Hope nobody got hurt!",
+      "icon": "exclamation"
+    }
   ]
 }
