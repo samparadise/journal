@@ -927,6 +927,17 @@ function urlB64ToUint8Array(base64) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
 }
 
+// True if an existing subscription was created with our current VAPID key.
+// A mismatch (e.g. key rotated) means the sub is stale and must be replaced.
+function applicationServerKeyMatches(sub, key) {
+  try {
+    const want = urlB64ToUint8Array(key)
+    const have = new Uint8Array(sub.options.applicationServerKey)
+    if (have.length !== want.length) return false
+    return have.every((b, i) => b === want[i])
+  } catch (e) { return false }
+}
+
 // Register the service worker once, on load (safe: sw.js has no fetch handler).
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -956,6 +967,13 @@ async function enablePush() {
     if (perm !== 'granted') { renderPushBanner(); return }
 
     let sub = await reg.pushManager.getSubscription()
+    // iOS can leave a stale/desynced subscription that blocks a fresh
+    // subscribe() (permission granted but getSubscription() is null, or the
+    // key no longer matches). Clear it first, then re-subscribe cleanly.
+    if (sub && !applicationServerKeyMatches(sub, key)) {
+      try { await sub.unsubscribe() } catch (e) { /* best effort */ }
+      sub = null
+    }
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -965,6 +983,18 @@ async function enablePush() {
     await apiPushSubscribe(sub.toJSON())
   } catch (err) {
     console.error('Enabling notifications failed:', err)
+    // Surface the reason instead of silently re-showing the same CTA.
+    const el = $('mobile-push')
+    if (el) {
+      show(el)
+      el.innerHTML = `
+        <div class="push-title">⚠️ Couldn't turn on notifications</div>
+        <div class="push-sub">${(err && err.message) || err}</div>
+        <button class="push-btn" id="push-enable" type="button">Try again</button>`
+      const b = $('push-enable')
+      if (b) b.addEventListener('click', enablePush)
+    }
+    return
   }
   renderPushBanner()
 }
