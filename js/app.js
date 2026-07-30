@@ -1136,16 +1136,11 @@ function renderMobile() {
     }).join('')
   }
 
-  // --- "go write" CTA when today's prompt is live and unfinished ---
+  // --- Badge + "go write" modal for a current, not-yet-submitted prompt ---
+  // The modal (shown on every mobile open) is the only "go write" nudge now;
+  // once it's dismissed the plain trophy grid is all that remains.
   const todayPrompt = state.prompts.find(p => p.date === today)
   const todayDone   = todayPrompt && doneEntries.some(e => e.prompt_id === todayPrompt.id)
-  if (todayPrompt && !todayDone) {
-    show($('mobile-cta'))
-  } else {
-    hide($('mobile-cta'))
-  }
-
-  // --- Badge + "go write" modal for a current, not-yet-submitted prompt ---
   const promptPending = !!todayPrompt && !todayDone
   updateAppBadge(promptPending)
   // Modal is mobile-only (renderMobile also runs on desktop, where the modal
