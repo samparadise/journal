@@ -1,11 +1,18 @@
 {
   "id": "last-test",
   "name": "Final Test ✏️",
-  "start_date": "2026-07-30",
-  "end_date": "2026-07-31",
+  "start_date": "2026-08-01",
+  "end_date": "2026-08-02",
   "settings": {
     "mid_event_join": "welcome",
     "streak_scope": "event"
+  },
+  "welcome": {
+    "body": "Get ready, {name}! ✏️ Final Test kicks off tomorrow morning — your first writing prompt lands then. See you in the morning!",
+    "mid_body": "Welcome aboard, {name}! ✏️ Final Test is already rolling — you're jumping in mid-event, and today's prompt is waiting for you."
+  },
+  "farewell": {
+    "body": "That's a wrap on Final Test, {name}! ✏️ You finished {done} of {total} prompts and wrote {words} words. Nicely done — see you at the next one! ☀️"
   },
   "prompts": [
     {
