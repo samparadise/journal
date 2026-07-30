@@ -28,6 +28,13 @@
       "body": "What happened today that was completely unexpected?",
       "subtext": "Accident? Surprise? Hope nobody got hurt!",
       "icon": "exclamation"
+    },
+    {
+      "date": "2026-08-09",
+      "id": "20260809-lastday",
+      "body": "Last day! What are you gonna remember the most?",
+      "subtext": "Is it Sam the Fish again? Something else?",
+      "icon": "fish"
     }
   ]
 }

@@ -1,5 +1,5 @@
 // ============================================================
-// Summer Pages — Configuration
+// July Journal — Configuration
 // ============================================================
 // stubAuth: true  → skip j2auth entirely, sign in as a fake user
 // stubData: true  → entries stored in localStorage instead of

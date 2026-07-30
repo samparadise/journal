@@ -1,0 +1,26 @@
+{
+  "id": "last-test",
+  "name": "Final Test ✏️",
+  "start_date": "2026-07-30",
+  "end_date": "2026-07-31",
+  "settings": {
+    "mid_event_join": "welcome",
+    "streak_scope": "event"
+  },
+  "prompts": [
+    {
+      "date": "2026-07-30",
+      "id": "20260730-one",
+      "body": "If you could be an animal for a day (not person), which?",
+      "subtext": "How would the day go?",
+      "icon": "chicken"
+    },
+    {
+      "date": "2026-07-31",
+      "id": "20260731-two",
+      "body": "Tell me all about your favorite fruit.",
+      "subtext": "Think hard about this one...",
+      "icon": "monkey"
+    }
+  ]
+}

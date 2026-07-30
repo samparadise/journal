@@ -1014,14 +1014,14 @@ async function renderPushBanner() {
     return done(`
       <div class="push-title">🔔 Turn on prompt alerts</div>
       <div class="push-sub">Tap <strong>Share → Add to Home Screen</strong>, then open
-        Summer Pages from the new icon and turn on notifications.</div>`)
+        July Journal from the new icon and turn on notifications.</div>`)
   }
 
   if (Notification.permission === 'denied') {
     return done(`
       <div class="push-title">🔕 Notifications are off</div>
       <div class="push-sub">Prompts arrive as notifications — turn them back on for
-        Summer Pages in your device settings.</div>`)
+        July Journal in your device settings.</div>`)
   }
 
   // Already granted + subscribed? Then we're all set — no banner.
@@ -1185,7 +1185,7 @@ function showLandingScreen() {
   hide($('auth-screen'))
   show($('landing-screen'))
 
-  // Auth-aware CTAs: a signed-in visitor (e.g. tapping "What is Summer Pages?"
+  // Auth-aware CTAs: a signed-in visitor (e.g. tapping "What is July Journal?"
   // from inside the app) gets "go to my pages" instead of "sign in", so they're
   // never stranded on the marketing page.
   const authed = typeof isAuthenticated !== 'undefined' && isAuthenticated
@@ -1234,10 +1234,10 @@ async function decorateLanding() {
 // Share sheet (native where available) → falls back to copying the link.
 async function shareApp() {
   const url  = 'https://july-journal.com'
-  const text = 'Summer Pages — a fun daily writing adventure for kids. Come join us!'
+  const text = 'July Journal — a fun daily writing adventure for kids. Come join us!'
   try {
     if (navigator.share) {
-      await navigator.share({ title: 'Summer Pages', text, url })
+      await navigator.share({ title: 'July Journal', text, url })
       return
     }
     await navigator.clipboard.writeText(url)
@@ -1438,7 +1438,7 @@ $('back-to-phone').addEventListener('click', () => {
 ;['landing-share', 'landing-share-2'].forEach(id =>
   $(id)?.addEventListener('click', shareApp))
 
-// The auth-screen "What is Summer Pages?" link opens the landing in-app (the
+// The auth-screen "What is July Journal?" link opens the landing in-app (the
 // /about page now just redirects here, so the href is a no-JS fallback). The
 // mobile "How does this work?" link is a real navigation to the player guide.
 $('auth-about-link')?.addEventListener('click', e => { e.preventDefault(); showLandingScreen() })
@@ -1808,7 +1808,7 @@ async function handleAuthenticated() {
     // A render/data error here is NOT an auth failure — don't bounce to the
     // sign-in screen (that's misleading). Surface the real reason instead.
     console.error('Could not load the app after sign-in:', err)
-    alert('Something went wrong loading Summer Pages:\n\n' + (err && err.message) +
+    alert('Something went wrong loading July Journal:\n\n' + (err && err.message) +
           '\n\n(If you just edited an event JSON, check it for a typo.)')
   }
 }

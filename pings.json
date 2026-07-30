@@ -6,7 +6,7 @@
   "settings": {
     "timezone": "America/Chicago",
     "site_link": "https://july-journal.com",
-    "sender_label": "Summer Pages",
+    "sender_label": "July Journal",
     "_quiet_hours": "Never send outside this window, even if a scenario fires (clamp or skip).",
     "quiet_hours": { "start": "21:00", "end": "08:00" },
     "_frequency_caps": "Global guardrails so no player is over-messaged regardless of how many scenarios match. Cap is 2/day because a non-submitter can get the 9am prompt AND the 6pm nudge on the same prompt day.",

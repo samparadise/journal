@@ -1,4 +1,4 @@
-// Summer Pages service worker.
+// July Journal service worker.
 // Handles incoming Web Push + notification taps. No fetch/offline handling,
 // so it can't affect the existing app's behavior.
 
@@ -15,7 +15,7 @@ self.addEventListener('push', (event) => {
     catch (e) { data = { body: event.data.text() }; }
   }
 
-  const title = data.title || 'Summer Pages';
+  const title = data.title || 'July Journal';
   const options = {
     body:  data.body || '',
     icon:  '/icons/icon-192.png',
