@@ -9,15 +9,15 @@
   },
   "prompts": [
     {
-      "date": "2026-07-30",
-      "id": "20260730-one",
+      "date": "2026-08-01",
+      "id": "20260801-one",
       "body": "If you could be an animal for a day (not person), which?",
       "subtext": "How would the day go?",
       "icon": "chicken"
     },
     {
-      "date": "2026-07-31",
-      "id": "20260731-two",
+      "date": "2026-08-02",
+      "id": "20260802-two",
       "body": "Tell me all about your favorite fruit.",
       "subtext": "Think hard about this one...",
       "icon": "monkey"

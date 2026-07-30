@@ -25,15 +25,15 @@
     {
       "date": "2026-08-06",
       "id": "20260806-day1",
-      "body": "What happened today that was completely unexpected?",
+      "body": "Tell me about something that happened today that was completely unexpected?",
       "subtext": "Accident? Surprise? Hope nobody got hurt!",
       "icon": "exclamation"
     },
     {
       "date": "2026-08-09",
       "id": "20260809-lastday",
-      "body": "Last day! What are you gonna remember the most?",
-      "subtext": "Is it Sam the Fish again? Something else?",
+      "body": "Last day! What will you remember the most about this trip?",
+      "subtext": "Did you see Sam the fish again? Or something else?",
       "icon": "fish"
     }
   ]
