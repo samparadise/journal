@@ -19,13 +19,13 @@
   </svg>
 
   <!-- title -->
-  <text x="300" y="225" font-family="Verdana, Arial, sans-serif" font-size="84" font-weight="bold" fill="#FFFFFF">Summer Pages</text>
-  <text x="300" y="290" font-family="Verdana, Arial, sans-serif" font-size="38" fill="#B8B2F6">Your summer, in your own words</text>
+  <text x="300" y="225" font-family="Verdana, Arial, sans-serif" font-size="84" font-weight="bold" fill="#FFFFFF">July Journal</text>
+  <text x="300" y="290" font-family="Verdana, Arial, sans-serif" font-size="38" fill="#B8B2F6">writing adventures, in your own words</text>
 
   <!-- prompt card -->
   <rect x="100" y="370" width="1000" height="160" rx="24" fill="#FFFFFF" opacity="0.97"/>
   <rect x="130" y="402" width="120" height="44" rx="22" fill="#FAC775"/>
   <text x="190" y="432" font-family="Verdana, Arial, sans-serif" font-size="24" font-weight="bold" fill="#5C3A00" text-anchor="middle">Day 12</text>
-  <text x="130" y="500" font-family="Verdana, Arial, sans-serif" font-size="34" fill="#1a1a2e">A new writing adventure, every morning ✏️</text>
+  <text x="130" y="500" font-family="Verdana, Arial, sans-serif" font-size="34" fill="#1a1a2e">A new writing adventure, every few days.</text>
 
 </svg>
