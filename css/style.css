@@ -335,7 +335,11 @@ html, body {
 
 .mobile-about-link {
   display: inline-block;
-  margin-top: 28px;
+  /* Stick to the bottom of the screen: the mobile view is a min-height:100vh
+     flex column, so auto top-margin pushes this to the bottom when content is
+     short, and it still trails the content naturally when the page is long. */
+  margin-top: auto;
+  padding-top: 28px;
   color: var(--purple-300);
   font-size: 15px;
   font-weight: 700;

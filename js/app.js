@@ -1122,7 +1122,17 @@ function renderMobile() {
 
   const grid = $('mobile-trophy-grid')
 
-  if (!done.length) {
+  // The collection (heading + tiles/empty message) belongs to an active
+  // Adventure. Between Adventures there's nothing to collect yet, so hide the
+  // whole section and let the Upcoming Adventures card own the space.
+  const showCollection = STUB_DATA || !!state.event
+  $('mobile-list-heading').style.display = showCollection ? '' : 'none'
+
+  if (!showCollection) {
+    grid.style.display = 'none'
+    grid.innerHTML = ''
+    $('mobile-empty').style.display = 'none'
+  } else if (!done.length) {
     grid.style.display = 'none'
     grid.innerHTML = ''
     $('mobile-empty').style.display = ''
