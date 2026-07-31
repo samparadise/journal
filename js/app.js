@@ -1246,13 +1246,12 @@ function renderInstallGateway() {
         'Open <strong>July Journal</strong> as an app',
         'Tap <strong>Turn on notifications</strong> when asked' ]
   el.innerHTML = `
-    <div class="gw-icon"><img src="icons/icon-192.png" alt="" aria-hidden="true"></div>
-    <div class="gw-title">Open July Journal as an app</div>
-    <div class="gw-lead">Your prompts arrive as <strong>notifications</strong> — and those
-      only work from the installed app, not this browser page.</div>
+    <div class="gw-title">Open in the app</div>
+    <div class="gw-lead">Prompts arrive as <strong>notifications</strong> — they only work in
+      the installed app, not this browser page.</div>
     <ol class="gw-steps">${steps.map(s => `<li>${s}</li>`).join('')}</ol>
-    <div class="gw-foot">Already added it? Just open <strong>July Journal</strong>
-      from your home-screen icon.</div>`
+    <div class="gw-foot">Already added it? Open <strong>July Journal</strong> from your
+      home-screen icon.</div>`
   show(el)
 }
 
@@ -1266,21 +1265,19 @@ function renderNotifGateway(perm) {
   if (!el) return
   if (perm === 'denied') {
     el.innerHTML = `
-      <div class="gw-icon"><img src="icons/icon-192.png" alt="" aria-hidden="true"></div>
       <div class="gw-title">Turn notifications back on</div>
-      <div class="gw-lead">Your prompts — and the little badge on the app icon — arrive as
-        notifications. They're currently off, so nothing can reach you.</div>
+      <div class="gw-lead">Your prompts — and the badge on the app icon — arrive as
+        notifications. They're off right now, so nothing can reach you.</div>
       <div class="gw-path"><strong>Settings → Notifications → July Journal → Allow Notifications</strong></div>
-      <div class="gw-foot">Turn on <strong>Show Previews → Always</strong> too, so you can read
-        each prompt right on the notification.</div>`
+      <div class="gw-foot">Set <strong>Show Previews → Always</strong> too, so you can read
+        each prompt on the notification.</div>`
     show(el)
     return
   }
   el.innerHTML = `
-    <div class="gw-icon"><img src="icons/icon-192.png" alt="" aria-hidden="true"></div>
     <div class="gw-title">Turn on notifications</div>
     <div class="gw-lead">This is how your writing prompts reach you — and how the badge shows
-      up on the app icon. Flip them on and you're all set.</div>
+      up on the app icon. Flip them on and you're set.</div>
     <button class="gw-btn" id="gw-enable" type="button">Turn on notifications</button>`
   show(el)
   const btn = $('gw-enable')
