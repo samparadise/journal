@@ -300,6 +300,39 @@ html, body {
 }
 .mobile-push .push-btn:active { transform: scale(0.98); }
 
+/* Upcoming Adventure card — calm by default, bright when it starts tomorrow. */
+.mobile-adventure {
+  width: 100%; max-width: 390px;
+  background: rgba(107, 95, 228, 0.16);        /* soft purple tint */
+  border: 1.5px solid rgba(143, 133, 238, 0.45);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+.mobile-adventure .adv-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--purple-300); margin-bottom: 8px;
+}
+.mobile-adventure .adv-list { list-style: none; margin: 0; padding: 0; }
+.mobile-adventure .adv-item { display: flex; flex-direction: column; }
+.mobile-adventure .adv-item + .adv-item {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(143, 133, 238, 0.25);
+}
+.mobile-adventure .adv-name {
+  font-family: var(--font-display); font-weight: 600; font-size: 19px; color: #fff;
+}
+.mobile-adventure .adv-when { font-size: 14px; color: var(--purple-100); margin-top: 2px; }
+
+/* Next Adventure starts today/tomorrow — warm highlight to draw the eye. */
+.mobile-adventure.soon {
+  background: rgba(250, 199, 117, 0.16);
+  border-color: var(--yellow-400);
+}
+.mobile-adventure.soon .adv-label { color: var(--orange-500); }
+/* Only the imminent item's timing pops (others stay calm even in a soon card). */
+.mobile-adventure .adv-item.imminent .adv-when { color: var(--yellow-100); font-weight: 600; }
+
 .mobile-about-link {
   display: inline-block;
   margin-top: 28px;

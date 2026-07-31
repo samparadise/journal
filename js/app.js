@@ -35,6 +35,7 @@ const state = {
   prompts:        [],     // active event's in-window prompts
   event:          null,   // the active event object (or null between events)
   eventNext:      null,   // soonest upcoming event, when none is active
+  eventsUpcoming: [],     // ALL upcoming events the player belongs to (when none active)
   memberEvents:   null,   // event ids this player belongs to (null = unknown/all)
   todayPrompt:    null,
   entries:        [],
@@ -439,7 +440,14 @@ async function loadPrompts() {
   const today   = localDate()
   const active  = pickActiveEvent(events, today)
   state.event     = active
-  state.eventNext = active ? null : pickNextEvent(events, today)
+  // Upcoming Adventures the player belongs to — only surfaced when none is
+  // active (an active Adventure shows its trophy grid instead). A player can
+  // have several queued up, so keep the whole list, soonest first.
+  const upcoming = active ? [] : events
+    .filter(e => e.start_date > today)
+    .sort((a, b) => (a.start_date < b.start_date ? -1 : 1))
+  state.eventsUpcoming = upcoming
+  state.eventNext      = upcoming[0] || null
   if (!active) return []
   const s = active.start_date, e = active.end_date
   return (active.prompts || []).filter(p => p.date && s <= p.date && p.date <= e)
@@ -1009,12 +1017,22 @@ async function renderPushBanner() {
 
   if (STUB_DATA || !pushSupported()) return hideBanner()
 
-  // iOS: notifications only work from the installed (home-screen) app.
-  if (isIOS() && !isStandalone()) {
+  // Not installed → notifications can't work yet. On iOS a web app must be added
+  // to the home screen; everywhere else, prompt to install for the best result.
+  // We also flag "Show Previews → Always" here, since iOS defaults it off on a
+  // fresh install and that silently strips the prompt text from notifications.
+  if (!isStandalone()) {
+    const steps = isIOS()
+      ? `Tap <strong>Share → Add to Home Screen</strong>, then open July Journal
+         from the new icon and turn on notifications.`
+      : `Install July Journal (your browser's <strong>Install app</strong> option),
+         then open it and turn on notifications.`
     return done(`
-      <div class="push-title">🔔 Turn on prompt alerts</div>
-      <div class="push-sub">Tap <strong>Share → Add to Home Screen</strong>, then open
-        July Journal from the new icon and turn on notifications.</div>`)
+      <div class="push-title">🔔 Finish setting up July Journal</div>
+      <div class="push-sub">${steps}</div>
+      <div class="push-sub" style="margin-top:8px">Tip: in <strong>Settings → Notifications
+        → July Journal</strong>, set <strong>Show Previews</strong> to <strong>Always</strong>
+        so you can read each prompt right on the notification.</div>`)
   }
 
   if (Notification.permission === 'denied') {
@@ -1154,8 +1172,54 @@ function renderMobile() {
     hide($('mobile-prompt-modal'))
   }
 
+  // Upcoming Adventures ("starts tomorrow!") — in-app context so a member knows
+  // what's coming even if a notification arrived without a preview.
+  renderUpcomingAdventures()
+
   // Notification enablement / install nudge (fire-and-forget; async state check)
   renderPushBanner()
+}
+
+// Whole-day count from today (local) to an ISO date (YYYY-MM-DD). Parsed as a
+// local date to avoid the UTC midnight-rollover that toISOString() would cause.
+function daysUntil(iso) {
+  const [y, m, d] = iso.split('-').map(Number)
+  const target = new Date(y, m - 1, d)
+  const now    = new Date()
+  const t0     = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((target - t0) / 86400000)
+}
+
+const adventureWhen = (days) =>
+    days <= 0 ? 'starts today!'
+  : days === 1 ? 'starts tomorrow!'
+  : `starts in ${days} days`
+
+// Lists the upcoming Adventures the player belongs to (membership-scoped, and
+// only populated when no Adventure is currently active). A player can have
+// several queued; the soonest is first, and the card glows when the next one
+// starts today or tomorrow.
+function renderUpcomingAdventures() {
+  const el = $('mobile-adventure')
+  if (!el) return
+  const list = (state.eventsUpcoming || [])
+    .map(ev => ({ ev, days: daysUntil(ev.start_date) }))
+    .sort((a, b) => a.days - b.days)
+  if (!list.length) return hide(el)
+
+  const soon  = list[0].days <= 1              // next one is today/tomorrow → highlight
+  const label = list.length > 1 ? 'Upcoming Adventures' : 'Upcoming Adventure'
+  el.className = 'mobile-adventure' + (soon ? ' soon' : '')
+  el.innerHTML = `
+    <div class="adv-label">🎒 ${label}</div>
+    <ul class="adv-list">
+      ${list.map(({ ev, days }) => `
+        <li class="adv-item${days <= 1 ? ' imminent' : ''}">
+          <span class="adv-name">${ev.name}</span>
+          <span class="adv-when">${adventureWhen(days)} · ${formatDateShort(ev.start_date)}</span>
+        </li>`).join('')}
+    </ul>`
+  show(el)
 }
 
 // App-icon badge: a "1" whenever there's a prompt waiting to be written.

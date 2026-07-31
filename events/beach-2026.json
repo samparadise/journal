@@ -7,6 +7,13 @@
     "mid_event_join": "welcome",
     "streak_scope": "event"
   },
+  "welcome": {
+    "body": "Get ready, {name}! 🏖️ Beach Trip 2026 starts tomorrow — your first prompt lands in the morning. Pack your imagination!",
+    "mid_body": "Welcome aboard, {name}! 🏖️ Beach Trip 2026 is already underway — you're jumping in mid-trip, and today's prompt is waiting."
+  },
+  "farewell": {
+    "body": "That's a wrap on Beach Trip 2026, {name}! 🏖️ You finished {done} of {total} prompts and wrote {words} words. Hope it was a blast — see you next time!"
+  },
   "prompts": [
     {
       "date": "2026-08-04",

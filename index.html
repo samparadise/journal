@@ -9,14 +9,14 @@
   <meta property="og:type"        content="website">
   <meta property="og:site_name"   content="July Journal">
   <meta property="og:title"       content="July Journal">
-  <meta property="og:description" content="Your summer, in your own words. Every few days a playful writing prompt lands on your phone.">
+  <meta property="og:description" content="Prompt-driven writing adventures for creative young people. Every few days a new prompt lands on your phone — then you sit down at a real keyboard and write.">
   <meta property="og:url"         content="https://july-journal.com/">
   <meta property="og:image"       content="https://july-journal.com/icons/og-tile.png">
   <meta property="og:image:width"  content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card"  content="summary_large_image">
   <meta name="twitter:title" content="July Journal">
-  <meta name="twitter:description" content="Your summer, in your own words. Every few days a playful writing prompt lands on your phone.">
+  <meta name="twitter:description" content="Prompt-driven writing adventures for creative young people. Every few days a new prompt lands on your phone — then you sit down at a real keyboard and write.">
   <meta name="twitter:image" content="https://july-journal.com/icons/og-tile.png">
 
   <!-- Favicon / home-screen icons -->
@@ -67,6 +67,9 @@
   <!-- Push-notification enablement / install nudge (filled by renderPushBanner) -->
   <div class="mobile-push hidden" id="mobile-push"></div>
 
+  <!-- Upcoming Adventure card (filled by renderUpcomingAdventure) -->
+  <div class="mobile-adventure hidden" id="mobile-adventure"></div>
+
   <!-- Collected topic tiles -->
   <div class="mobile-list-heading">Your collection</div>
   <div class="mobile-trophy-grid" id="mobile-trophy-grid"></div>
@@ -99,18 +102,18 @@
     </header>
 
     <section class="landing-hero">
-      <div class="landing-badge">☀️ A summer writing adventure</div>
-      <h1 class="landing-title">Help your kid capture<br>a summer of memories.</h1>
+      <div class="landing-badge">✏️ Prompt-driven writing adventures</div>
+      <h1 class="landing-title">A new writing adventure,<br>every few days.</h1>
       <p class="landing-sub">
-        Every few days a playful prompt pops up on their phone. Your kid sits down at a
-        real keyboard, writes for a few minutes — silly or serious — and builds a
-        summer-long collection of their own stories. No grades. No feed. No pressure.
+        Every few days a playful prompt pops up on their phone. Your young writer sits down
+        at a real keyboard, writes for a few minutes — silly or serious — and builds a
+        growing collection of their own stories. No grades. No feed. No pressure.
       </p>
       <div class="landing-cta-row">
         <button class="landing-cta" id="landing-start" type="button">Get started — it's free</button>
         <button class="landing-cta secondary" id="landing-share" type="button">Share with a friend</button>
       </div>
-      <div class="landing-trust">Made for kids aged 11–99 · A phone to sign up, a keyboard to write</div>
+      <div class="landing-trust">Made for creative writers aged 11–99 · A phone to sign up, a keyboard to write</div>
     </section>
   </div>
 
@@ -158,7 +161,7 @@
         <div class="acc-body"><div class="acc-body-inner">
           <p>The phone is home base for looking back. Every finished prompt becomes a
              colorful tile, streaks build up, and they can reread everything they've
-             made anytime — a growing scrapbook of the summer in their pocket.</p>
+             made anytime — a growing scrapbook of their writing in their pocket.</p>
         </div></div>
       </div>
 
@@ -212,7 +215,7 @@
   </section>
 
   <footer class="landing-foot">
-    <span>☀️ July Journal — your summer, in your own words</span>
+    <span>✏️ July Journal — writing adventures, in your own words</span>
   </footer>
 </div>
 
@@ -223,7 +226,7 @@
       <div class="logo-mark"><img src="icons/journal-write.svg" alt="" aria-hidden="true"></div>
       <div>
         <div class="auth-app-name">July Journal</div>
-        <div class="auth-tagline">Your summer, in your own words</div>
+        <div class="auth-tagline">Writing adventures, in your own words</div>
       </div>
     </div>
 
