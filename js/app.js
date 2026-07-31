@@ -1015,25 +1015,37 @@ async function renderPushBanner() {
   const done = (html) => { el.innerHTML = html; show(el) }
   const hideBanner = () => hide(el)
 
-  if (STUB_DATA || !pushSupported()) return hideBanner()
+  if (STUB_DATA) return hideBanner()
 
   // Not installed → notifications can't work yet. On iOS a web app must be added
   // to the home screen; everywhere else, prompt to install for the best result.
   // We also flag "Show Previews → Always" here, since iOS defaults it off on a
   // fresh install and that silently strips the prompt text from notifications.
+  //
+  // IMPORTANT: this runs BEFORE the pushSupported() gate below — on iOS the push
+  // APIs (PushManager/Notification) don't exist until the site is installed, so
+  // gating this on pushSupported() would hide the install nudge in iOS Safari,
+  // which is exactly when it's needed.
   if (!isStandalone()) {
+    // We can't tell whether the app is already installed — iOS Safari has no
+    // install-detection API, and the PWA's storage is a separate container. So
+    // phrase this to be true either way: point them at the home-screen icon,
+    // with "add it first" as the fallback for anyone who hasn't installed yet.
     const steps = isIOS()
-      ? `Tap <strong>Share → Add to Home Screen</strong>, then open July Journal
-         from the new icon and turn on notifications.`
-      : `Install July Journal (your browser's <strong>Install app</strong> option),
-         then open it and turn on notifications.`
+      ? `Open July Journal from its <strong>home-screen icon</strong> to get your prompts.
+         Not there yet? Tap <strong>Share → Add to Home Screen</strong> first.`
+      : `Open July Journal as an installed app to get your prompts. Not installed yet?
+         Use your browser's <strong>Install app</strong> option first.`
     return done(`
-      <div class="push-title">🔔 Finish setting up July Journal</div>
+      <div class="push-title">🔔 Notifications live in the app</div>
       <div class="push-sub">${steps}</div>
       <div class="push-sub" style="margin-top:8px">Tip: in <strong>Settings → Notifications
         → July Journal</strong>, set <strong>Show Previews</strong> to <strong>Always</strong>
         so you can read each prompt right on the notification.</div>`)
   }
+
+  // Installed as an app, but this browser doesn't support push — nothing to offer.
+  if (!pushSupported()) return hideBanner()
 
   if (Notification.permission === 'denied') {
     return done(`
