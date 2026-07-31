@@ -333,6 +333,52 @@ html, body {
 /* Only the imminent item's timing pops (others stay calm even in a soon card). */
 .mobile-adventure .adv-item.imminent .adv-when { color: var(--yellow-100); font-weight: 600; }
 
+/* ---- Browser "gateway": open-in-the-app takeover screen ---- */
+/* In the browser (not the installed app) hide the trophy content entirely and
+   show only the header, the gateway, and the help link. */
+.mobile-screen.gateway-mode > *:not(.mobile-header):not(#mobile-gateway):not(.mobile-about-link) {
+  display: none !important;
+}
+.mobile-gateway {
+  width: 100%; max-width: 390px; margin: 22px 0 0;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(250,199,117,0.5);
+  border-radius: 22px;
+  padding: 28px 24px;
+  text-align: center;
+}
+.mobile-gateway .gw-icon img {
+  width: 76px; height: 76px; border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+}
+.mobile-gateway .gw-title {
+  font-family: var(--font-display); font-weight: 600; font-size: 24px;
+  color: #fff; margin: 16px 0 8px;
+}
+.mobile-gateway .gw-lead {
+  font-size: 15px; color: var(--purple-100); line-height: 1.55; margin-bottom: 22px;
+}
+.mobile-gateway .gw-steps {
+  list-style: none; margin: 0; padding: 0; text-align: left; counter-reset: gw;
+}
+.mobile-gateway .gw-steps li {
+  position: relative; counter-increment: gw;
+  padding: 3px 0 3px 42px; margin-bottom: 15px;
+  font-size: 16px; color: #fff; line-height: 1.45;
+}
+.mobile-gateway .gw-steps li::before {
+  content: counter(gw);
+  position: absolute; left: 0; top: 0;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--yellow-400); color: var(--purple-900);
+  font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mobile-gateway .gw-foot {
+  margin-top: 4px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12);
+  font-size: 14px; color: var(--purple-300); line-height: 1.5;
+}
+
 .mobile-about-link {
   display: inline-block;
   /* Stick to the bottom of the screen: the mobile view is a min-height:100vh

@@ -32,7 +32,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome 6 Free -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
@@ -45,6 +45,10 @@
     <div class="logo-mark"><img src="icons/journal-write.svg" alt="" aria-hidden="true"></div>
     <span class="mobile-app-name">July Journal</span>
   </div>
+
+  <!-- Shown only in the browser (not the installed app): a focused "open in the
+       app" screen. When present, gateway-mode hides the trophy content. -->
+  <div class="mobile-gateway hidden" id="mobile-gateway"></div>
 
   <div class="mobile-greeting" id="mobile-greeting"></div>
 
@@ -517,7 +521,7 @@
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="j2auth.js"></script>
 <script src="js/config.js"></script>
-<script src="js/app.js"></script>
+<script src="js/app.js?v=4"></script>
 
 </body>
 </html>

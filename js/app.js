@@ -1079,6 +1079,19 @@ function renderMobile() {
   const entries = STUB_DATA ? stubLoadEntries() : state.entries
   const today   = localDate()
 
+  // In the browser (not the installed app) the whole mobile view becomes a
+  // focused "open in the app" screen — prompts arrive as notifications, which
+  // only work from the PWA, so we want people writing from the app, not here.
+  const inBrowser = !STUB_DATA && !isStandalone()
+  $('mobile-screen').classList.toggle('gateway-mode', inBrowser)
+  if (inBrowser) {
+    renderInstallGateway()
+    hide($('mobile-prompt-modal'))
+    updateAppBadge(false)
+    return
+  }
+  hide($('mobile-gateway'))
+
   // Personalized greeting — profile is loaded by the time this renders
   const name = state.profile?.name || localStorage.getItem('sp_user_name') || ''
   $('mobile-greeting').textContent = getGreeting(name)
@@ -1210,6 +1223,31 @@ function daysUntil(iso) {
   const now    = new Date()
   const t0     = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   return Math.round((target - t0) / 86400000)
+}
+
+// The browser "gateway" — a prominent, stepped call to open July Journal as an
+// installed app. Renders into #mobile-gateway; renderMobile hides the trophy
+// content (via .gateway-mode) whenever this is showing.
+function renderInstallGateway() {
+  const el = $('mobile-gateway')
+  if (!el) return
+  const steps = isIOS()
+    ? [ 'Tap <strong>Share</strong>, then <strong>Add to Home&nbsp;Screen</strong>',
+        'Open <strong>July Journal</strong> from the new icon',
+        'Tap <strong>Turn on notifications</strong> when asked',
+        'In <strong>Settings → Notifications → July Journal</strong>, set <strong>Show Previews</strong> to <strong>Always</strong>' ]
+    : [ 'Install July Journal with your browser’s <strong>Install app</strong> option',
+        'Open <strong>July Journal</strong> as an app',
+        'Tap <strong>Turn on notifications</strong> when asked' ]
+  el.innerHTML = `
+    <div class="gw-icon"><img src="icons/icon-192.png" alt="" aria-hidden="true"></div>
+    <div class="gw-title">Open July Journal as an app</div>
+    <div class="gw-lead">Your prompts arrive as <strong>notifications</strong> — and those
+      only work from the installed app, not this browser page.</div>
+    <ol class="gw-steps">${steps.map(s => `<li>${s}</li>`).join('')}</ol>
+    <div class="gw-foot">Already added it? Just open <strong>July Journal</strong>
+      from your home-screen icon.</div>`
+  show(el)
 }
 
 const adventureWhen = (days) =>
