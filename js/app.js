@@ -1079,13 +1079,19 @@ function renderMobile() {
   const entries = STUB_DATA ? stubLoadEntries() : state.entries
   const today   = localDate()
 
-  // In the browser (not the installed app) the whole mobile view becomes a
-  // focused "open in the app" screen — prompts arrive as notifications, which
-  // only work from the PWA, so we want people writing from the app, not here.
+  // Two full-screen "gateways" take over the mobile view when the core delivery
+  // path isn't ready — because notifications carry BOTH the prompts and the app
+  // badge (setAppBadge no-ops without notification permission on iOS):
+  //   1. In the browser (not installed) → "open in the app" gateway.
+  //   2. Installed but notifications not granted → "turn on notifications".
+  // Permission is read synchronously (no flash); the rare granted-but-no-
+  // subscription case is left to renderPushBanner's smaller self-heal banner.
   const inBrowser = !STUB_DATA && !isStandalone()
-  $('mobile-screen').classList.toggle('gateway-mode', inBrowser)
-  if (inBrowser) {
-    renderInstallGateway()
+  const perm = (!STUB_DATA && pushSupported()) ? Notification.permission : 'granted'
+  const notifTakeover = !inBrowser && perm !== 'granted'
+  $('mobile-screen').classList.toggle('gateway-mode', inBrowser || notifTakeover)
+  if (inBrowser || notifTakeover) {
+    inBrowser ? renderInstallGateway() : renderNotifGateway(perm)
     hide($('mobile-prompt-modal'))
     updateAppBadge(false)
     return
@@ -1248,6 +1254,39 @@ function renderInstallGateway() {
     <div class="gw-foot">Already added it? Just open <strong>July Journal</strong>
       from your home-screen icon.</div>`
   show(el)
+}
+
+// The in-app "notifications off" takeover — shown inside the installed PWA when
+// notification permission isn't granted. Notifications carry the prompts AND the
+// badge, so this stays until they're enabled. Two variants:
+//   • 'default' (never asked) → one-tap enable button.
+//   • 'denied'  (refused)     → can't re-prompt from JS; send them to Settings.
+function renderNotifGateway(perm) {
+  const el = $('mobile-gateway')
+  if (!el) return
+  if (perm === 'denied') {
+    el.innerHTML = `
+      <div class="gw-icon"><img src="icons/icon-192.png" alt="" aria-hidden="true"></div>
+      <div class="gw-title">Turn notifications back on</div>
+      <div class="gw-lead">Your prompts — and the little badge on the app icon — arrive as
+        notifications. They're currently off, so nothing can reach you.</div>
+      <div class="gw-path"><strong>Settings → Notifications → July Journal → Allow Notifications</strong></div>
+      <div class="gw-foot">Turn on <strong>Show Previews → Always</strong> too, so you can read
+        each prompt right on the notification.</div>`
+    show(el)
+    return
+  }
+  el.innerHTML = `
+    <div class="gw-icon"><img src="icons/icon-192.png" alt="" aria-hidden="true"></div>
+    <div class="gw-title">Turn on notifications</div>
+    <div class="gw-lead">This is how your writing prompts reach you — and how the badge shows
+      up on the app icon. Flip them on and you're all set.</div>
+    <button class="gw-btn" id="gw-enable" type="button">Turn on notifications</button>`
+  show(el)
+  const btn = $('gw-enable')
+  if (btn) btn.addEventListener('click', async () => {
+    try { await enablePush() } finally { renderMobile() }   // re-decide the takeover
+  })
 }
 
 const adventureWhen = (days) =>

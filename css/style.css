@@ -378,6 +378,20 @@ html, body {
   margin-top: 4px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12);
   font-size: 14px; color: var(--purple-300); line-height: 1.5;
 }
+/* Enable button for the "turn on notifications" gateway. */
+.mobile-gateway .gw-btn {
+  width: 100%; margin-top: 4px; padding: 15px;
+  border: none; border-radius: 14px; cursor: pointer;
+  background: var(--yellow-400); color: var(--purple-900);
+  font-family: var(--font-display); font-weight: 600; font-size: 17px;
+}
+.mobile-gateway .gw-btn:active { transform: scale(0.98); }
+/* Settings path callout for the "denied" variant. */
+.mobile-gateway .gw-path {
+  background: rgba(0,0,0,0.22); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 16px;
+  font-size: 15px; color: #fff; line-height: 1.5;
+}
 
 .mobile-about-link {
   display: inline-block;
