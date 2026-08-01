@@ -17,14 +17,14 @@
   "prompts": [
     {
       "date": "2026-08-04",
-      "id": "20260804-things",
-      "body": "Heading to the beach? Tell me the 3 things you're looking forward to most.",
+      "id": "20260804-travel",
+      "body": "Heading to the beach! What's your favorite thing about travel days?",
       "subtext": "Kick it off great... lots of detail!",
-      "icon": "beach"
+      "icon": "airplane"
     },
     {
       "date": "2026-08-05",
-      "id": "20260805-flying",
+      "id": "20260805-funny",
       "body": "Day 1 was lots of travel. What was the funniest thing that happened?",
       "subtext": "Bonus points if someone in the group looks silly",
       "icon": "laugh"
@@ -34,7 +34,21 @@
       "id": "20260806-day1",
       "body": "Tell me about something that happened today that was completely unexpected?",
       "subtext": "Accident? Surprise? Hope nobody got hurt!",
-      "icon": "exclamation"
+      "icon": "camera"
+    },
+    {
+      "date": "2026-08-07",
+      "id": "20260807-eat",
+      "body": "What's the best thing you've eaten so far?",
+      "subtext": "Unusual? Or just super good?",
+      "icon": "burger"
+    },
+    {
+      "date": "2026-08-08",
+      "id": "20260808-creature",
+      "body": "What's an animal or creature you'd really like to see before you leave?",
+      "subtext": "Try to think of one you haven't seen yet.",
+      "icon": "octopus"
     },
     {
       "date": "2026-08-09",
@@ -42,6 +56,13 @@
       "body": "Last day! What will you remember the most about this trip?",
       "subtext": "Did you see Sam the fish again? Or something else?",
       "icon": "fish"
+    },
+    {
+      "date": "2026-08-10",
+      "id": "20260810-memory",
+      "body": "Back to reality! What are the 3 things you'll tell your friends?",
+      "subtext": "How are you going to describe the trip?",
+      "icon": "beach"
     }
   ]
 }
