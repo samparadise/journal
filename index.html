@@ -32,7 +32,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome 6 Free -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
@@ -52,20 +52,23 @@
 
   <div class="mobile-greeting" id="mobile-greeting"></div>
 
-  <!-- Score stats -->
+  <!-- Score stats: all-time tallies (entries/words, never reset) grouped on the
+       left; the current adventure's streak on the right (filled by renderMobile). -->
   <div class="mobile-stats" id="mobile-stats">
-    <div class="mobile-stat">
-      <span class="mobile-stat-num" id="stat-entries">0</span>
-      <span class="mobile-stat-label">entries</span>
+    <div class="stat-group alltime">
+      <span class="stat-group-cap">all-time</span>
+      <div class="stat-row">
+        <div class="mobile-stat">
+          <span class="mobile-stat-num" id="stat-entries">0</span>
+          <span class="mobile-stat-label">entries</span>
+        </div>
+        <div class="mobile-stat">
+          <span class="mobile-stat-num" id="stat-words">0</span>
+          <span class="mobile-stat-label">words</span>
+        </div>
+      </div>
     </div>
-    <div class="mobile-stat">
-      <span class="mobile-stat-num" id="stat-streak">0</span>
-      <span class="mobile-stat-label">🔥 streak</span>
-    </div>
-    <div class="mobile-stat">
-      <span class="mobile-stat-num" id="stat-words">0</span>
-      <span class="mobile-stat-label">words</span>
-    </div>
+    <div class="stat-group streak" id="stat-streak-group"></div>
   </div>
 
   <!-- Push-notification enablement / install nudge (filled by renderPushBanner) -->
@@ -521,7 +524,7 @@
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="j2auth.js"></script>
 <script src="js/config.js"></script>
-<script src="js/app.js?v=6"></script>
+<script src="js/app.js?v=7"></script>
 
 </body>
 </html>

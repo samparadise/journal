@@ -120,22 +120,52 @@ html, body {
   width: 100%;
   max-width: 390px;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  align-items: stretch;
 }
+/* Two panels: all-time tallies (left) vs the current adventure's streak (right). */
+.stat-group {
+  display: flex; flex-direction: column;
+  border-radius: 18px; padding: 10px 12px 12px;
+}
+.stat-group-cap {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.07em;
+  text-transform: uppercase; text-align: center;
+  color: var(--purple-300); margin-bottom: 7px;
+}
+.stat-group.alltime {
+  flex: 1; min-width: 0;
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.13);
+}
+.stat-group.alltime .stat-row {
+  display: flex; flex: 1; align-items: center;
+  justify-content: space-around; gap: 10px;
+}
+.stat-group.streak {
+  flex: 0 0 auto; min-width: 104px;
+  align-items: center; justify-content: center;
+  background: rgba(250,199,117,0.13);
+  border: 1.5px solid rgba(250,199,117,0.38);
+}
+.stat-group.streak .stat-group-cap { color: var(--yellow-400); }
+.stat-group.streak.idle {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.13);
+}
+.stat-group.streak.idle .stat-group-cap { color: var(--purple-300); }
+.stat-group.streak .streak-idle-icon { font-size: 22px; line-height: 1; opacity: 0.85; }
+.stat-group.streak .streak-hint {
+  margin-top: 5px; font-size: 12px; font-weight: 700;
+  color: var(--purple-100); text-align: center; line-height: 1.3;
+}
+
 .mobile-stat {
-  flex: 1;
-  background: rgba(255,255,255,0.12);
-  border: 1.5px solid rgba(255,255,255,0.2);
-  border-radius: 18px;
-  padding: 16px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
 }
 .mobile-stat-num {
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 600;
   color: #fff;
   line-height: 1;

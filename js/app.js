@@ -1109,12 +1109,31 @@ function renderMobile() {
   const totalWords = doneEntries.reduce(
     (sum, e) => sum + wordCount(mdToText(e.entry_md)), 0
   )
+  // All-time tallies (never reset across adventures)
   $('stat-entries').textContent = doneEntries.length
-  const mStreak = getStreak()
-  $('stat-streak').textContent  = mStreak >= 2 ? mStreak : 0   // a single day isn't a streak
   $('stat-words').textContent   = totalWords >= 1000
     ? (totalWords / 1000).toFixed(1) + 'k'
     : totalWords
+
+  // Streak is scoped to the CURRENT adventure. Show the real value (including 1
+  // — a single completed prompt IS a streak of 1). Between adventures there's no
+  // streak to show, so nudge toward the next one instead of a bare 0.
+  const streakGroup = $('stat-streak-group')
+  if (STUB_DATA || state.event) {
+    streakGroup.className = 'stat-group streak'
+    streakGroup.innerHTML = `
+      <span class="stat-group-cap">this adventure</span>
+      <div class="mobile-stat">
+        <span class="mobile-stat-num">${getStreak()}</span>
+        <span class="mobile-stat-label">🔥 streak</span>
+      </div>`
+  } else {
+    streakGroup.className = 'stat-group streak idle'
+    streakGroup.innerHTML = `
+      <span class="stat-group-cap">streak</span>
+      <span class="streak-idle-icon">🔥</span>
+      <span class="streak-hint">starts with your<br>next adventure</span>`
+  }
 
   // --- Trophy collection: one tile per completed prompt, oldest first ---
   // Position of each prompt in the full schedule, so we can detect gaps.
