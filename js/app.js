@@ -648,8 +648,12 @@ function renderApp() {
   const tile = $('prompt-icon-tile')
 
   if (todayPrompt) {
-    // Prompt banner — day number = total entries written + 1
-    $('prompt-day').textContent       = `Day ${entries.length + 1}`
+    // Prompt banner — "Day N" counts CALENDAR days into the current adventure
+    // (day 1 = its start_date), so e.g. the 5th day of the trip reads "Day 5"
+    // even if only some days had prompts. daysUntil(start) is ≤ 0 once started.
+    const start  = state.event?.start_date
+    const dayNum = start ? (1 - daysUntil(start)) : 1
+    $('prompt-day').textContent       = `Day ${dayNum >= 1 ? dayNum : 1}`
     show($('prompt-day'))
     $('prompt-text').textContent      = todayPrompt.body
     $('prompt-subtext').textContent   = todayPrompt.subtext || ''
